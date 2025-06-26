@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package klubyorg.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1";
+
+service GetCourtsService {
+  rpc GetCourts(GetCourtsRequest) returns (GetCourtsResponse);
+}
+
+message GetCourtsRequest {
+  google.protobuf.Timestamp ts = 1;
+  google.protobuf.Duration duration = 2;
+}
+
+message GetCourtsResponse {
+  repeated Court courts = 1;
+
+  message Court {
+    string reservation_url = 1;
+    Club club = 2;
+    CourtPrice court_price = 3;
+  }
+}
+
+message Club {
+  string club_name = 1;
+  string club_address = 2;
+}
+
+message CourtPrice {
+  string court_type = 1;
+  string court_price = 2;
+}
