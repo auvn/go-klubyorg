@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: klubyorg/v1/klubyorg_service.proto
 
-package v1
+package klubyorgv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -306,9 +306,9 @@ const file_klubyorg_v1_klubyorg_service_proto_rawDesc = "" +
 	"\n" +
 	"court_type\x18\x01 \x01(\tR\tcourtType\x12\x1f\n" +
 	"\vcourt_price\x18\x02 \x01(\tR\n" +
-	"courtPrice2^\n" +
-	"\x10GetCourtsService\x12J\n" +
-	"\tGetCourts\x12\x1d.klubyorg.v1.GetCourtsRequest\x1a\x1e.klubyorg.v1.GetCourtsResponseB7Z5github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1b\x06proto3"
+	"courtPrice2[\n" +
+	"\rCourtsService\x12J\n" +
+	"\tGetCourts\x12\x1d.klubyorg.v1.GetCourtsRequest\x1a\x1e.klubyorg.v1.GetCourtsResponseBBZ@github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1;klubyorgv1b\x06proto3"
 
 var (
 	file_klubyorg_v1_klubyorg_service_proto_rawDescOnce sync.Once
@@ -338,8 +338,8 @@ var file_klubyorg_v1_klubyorg_service_proto_depIdxs = []int32{
 	4, // 2: klubyorg.v1.GetCourtsResponse.courts:type_name -> klubyorg.v1.GetCourtsResponse.Court
 	2, // 3: klubyorg.v1.GetCourtsResponse.Court.club:type_name -> klubyorg.v1.Club
 	3, // 4: klubyorg.v1.GetCourtsResponse.Court.court_price:type_name -> klubyorg.v1.CourtPrice
-	0, // 5: klubyorg.v1.GetCourtsService.GetCourts:input_type -> klubyorg.v1.GetCourtsRequest
-	1, // 6: klubyorg.v1.GetCourtsService.GetCourts:output_type -> klubyorg.v1.GetCourtsResponse
+	0, // 5: klubyorg.v1.CourtsService.GetCourts:input_type -> klubyorg.v1.GetCourtsRequest
+	1, // 6: klubyorg.v1.CourtsService.GetCourts:output_type -> klubyorg.v1.GetCourtsResponse
 	6, // [6:7] is the sub-list for method output_type
 	5, // [5:6] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name

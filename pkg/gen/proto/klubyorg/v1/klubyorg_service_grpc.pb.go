@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: klubyorg/v1/klubyorg_service.proto
 
-package v1
+package klubyorgv1
 
 import (
 	context "context"
@@ -19,101 +19,101 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GetCourtsService_GetCourts_FullMethodName = "/klubyorg.v1.GetCourtsService/GetCourts"
+	CourtsService_GetCourts_FullMethodName = "/klubyorg.v1.CourtsService/GetCourts"
 )
 
-// GetCourtsServiceClient is the client API for GetCourtsService service.
+// CourtsServiceClient is the client API for CourtsService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type GetCourtsServiceClient interface {
+type CourtsServiceClient interface {
 	GetCourts(ctx context.Context, in *GetCourtsRequest, opts ...grpc.CallOption) (*GetCourtsResponse, error)
 }
 
-type getCourtsServiceClient struct {
+type courtsServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewGetCourtsServiceClient(cc grpc.ClientConnInterface) GetCourtsServiceClient {
-	return &getCourtsServiceClient{cc}
+func NewCourtsServiceClient(cc grpc.ClientConnInterface) CourtsServiceClient {
+	return &courtsServiceClient{cc}
 }
 
-func (c *getCourtsServiceClient) GetCourts(ctx context.Context, in *GetCourtsRequest, opts ...grpc.CallOption) (*GetCourtsResponse, error) {
+func (c *courtsServiceClient) GetCourts(ctx context.Context, in *GetCourtsRequest, opts ...grpc.CallOption) (*GetCourtsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetCourtsResponse)
-	err := c.cc.Invoke(ctx, GetCourtsService_GetCourts_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, CourtsService_GetCourts_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// GetCourtsServiceServer is the server API for GetCourtsService service.
-// All implementations must embed UnimplementedGetCourtsServiceServer
+// CourtsServiceServer is the server API for CourtsService service.
+// All implementations must embed UnimplementedCourtsServiceServer
 // for forward compatibility.
-type GetCourtsServiceServer interface {
+type CourtsServiceServer interface {
 	GetCourts(context.Context, *GetCourtsRequest) (*GetCourtsResponse, error)
-	mustEmbedUnimplementedGetCourtsServiceServer()
+	mustEmbedUnimplementedCourtsServiceServer()
 }
 
-// UnimplementedGetCourtsServiceServer must be embedded to have
+// UnimplementedCourtsServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedGetCourtsServiceServer struct{}
+type UnimplementedCourtsServiceServer struct{}
 
-func (UnimplementedGetCourtsServiceServer) GetCourts(context.Context, *GetCourtsRequest) (*GetCourtsResponse, error) {
+func (UnimplementedCourtsServiceServer) GetCourts(context.Context, *GetCourtsRequest) (*GetCourtsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCourts not implemented")
 }
-func (UnimplementedGetCourtsServiceServer) mustEmbedUnimplementedGetCourtsServiceServer() {}
-func (UnimplementedGetCourtsServiceServer) testEmbeddedByValue()                          {}
+func (UnimplementedCourtsServiceServer) mustEmbedUnimplementedCourtsServiceServer() {}
+func (UnimplementedCourtsServiceServer) testEmbeddedByValue()                       {}
 
-// UnsafeGetCourtsServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GetCourtsServiceServer will
+// UnsafeCourtsServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CourtsServiceServer will
 // result in compilation errors.
-type UnsafeGetCourtsServiceServer interface {
-	mustEmbedUnimplementedGetCourtsServiceServer()
+type UnsafeCourtsServiceServer interface {
+	mustEmbedUnimplementedCourtsServiceServer()
 }
 
-func RegisterGetCourtsServiceServer(s grpc.ServiceRegistrar, srv GetCourtsServiceServer) {
-	// If the following call pancis, it indicates UnimplementedGetCourtsServiceServer was
+func RegisterCourtsServiceServer(s grpc.ServiceRegistrar, srv CourtsServiceServer) {
+	// If the following call pancis, it indicates UnimplementedCourtsServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&GetCourtsService_ServiceDesc, srv)
+	s.RegisterService(&CourtsService_ServiceDesc, srv)
 }
 
-func _GetCourtsService_GetCourts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CourtsService_GetCourts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetCourtsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GetCourtsServiceServer).GetCourts(ctx, in)
+		return srv.(CourtsServiceServer).GetCourts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GetCourtsService_GetCourts_FullMethodName,
+		FullMethod: CourtsService_GetCourts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GetCourtsServiceServer).GetCourts(ctx, req.(*GetCourtsRequest))
+		return srv.(CourtsServiceServer).GetCourts(ctx, req.(*GetCourtsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// GetCourtsService_ServiceDesc is the grpc.ServiceDesc for GetCourtsService service.
+// CourtsService_ServiceDesc is the grpc.ServiceDesc for CourtsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var GetCourtsService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "klubyorg.v1.GetCourtsService",
-	HandlerType: (*GetCourtsServiceServer)(nil),
+var CourtsService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "klubyorg.v1.CourtsService",
+	HandlerType: (*CourtsServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "GetCourts",
-			Handler:    _GetCourtsService_GetCourts_Handler,
+			Handler:    _CourtsService_GetCourts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
