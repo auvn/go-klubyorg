@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"math/big"
 	"net/http"
 	"net/url"
 	"os"
@@ -77,7 +78,19 @@ func (s *Service) GetCourts(
 			price := data.Eq(1)
 			href, _ := reserve.Attr("href")
 
-			if isMuted || club.Length() == 0 || href == "" || price.Length() == 0 || price.Text() == "0,00" {
+			if isMuted ||
+				club.Length() == 0 ||
+				href == "" ||
+				price.Length() == 0 ||
+				price.Text() == "0,00" {
+				return true
+			}
+
+			priceStr := simplifyString(price.Text())
+			parsedPrice, _, err := new(big.Float).Parse(
+				strings.ReplaceAll(priceStr, ",", "."), 10,
+			)
+			if err != nil {
 				return true
 			}
 
@@ -86,10 +99,9 @@ func (s *Service) GetCourts(
 				HRef:    _hrefBaseURL + href,
 				Club:    simplifyString(club.Text()),
 				Type:    simplifyString(courtType.Text()),
-				Price:   simplifyString(price.Text()),
+				Price:   parsedPrice,
 				Address: simplifyString(address.Text()),
 			}
-			slog.Info("found", "result", res)
 			courts = append(courts, res)
 			return true
 		})
@@ -100,7 +112,11 @@ func (s *Service) GetCourts(
 
 	slices.SortFunc(courts,
 		func(a, b CourtResult) int {
-			return strings.Compare(a.HRef, b.HRef)
+			priceCmp := a.Price.Cmp(b.Price)
+			if priceCmp == 0 {
+				return strings.Compare(a.HRef, b.HRef)
+			}
+			return priceCmp
 		},
 	)
 
@@ -127,7 +143,7 @@ type CourtResult struct {
 	Club    string
 	Address string
 	Type    string
-	Price   string
+	Price   *big.Float
 }
 
 func simplifyString(s string) string {

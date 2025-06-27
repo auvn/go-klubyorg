@@ -57,7 +57,7 @@ func (h *Handler) GetCourts(
 				},
 				CourtPrice: &klubyorgv1.CourtPrice{
 					CourtType:  c.Type,
-					CourtPrice: c.Price,
+					CourtPrice: c.Price.Text('f', 2),
 				},
 			},
 		)
