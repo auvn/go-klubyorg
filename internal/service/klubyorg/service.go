@@ -1,12 +1,14 @@
 package klubyorg
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -15,7 +17,16 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+const (
+	_hrefBaseURL = "https://kluby.org/tenis/wyszukaj"
+	_ajaxBaseURL = "https://kluby.org/ajax/wyszukiwarka.php"
+)
+
 const _30minsDuration = 30 * time.Minute
+
+const (
+	SportTennis = "1"
+)
 
 type Service struct{}
 
@@ -30,7 +41,7 @@ func (s *Service) GetCourts(
 ) ([]CourtResult, error) {
 	reservationDuration := duration.Minutes() / _30minsDuration.Minutes()
 	body, err := query(ctx, SearchParams{
-		Sport:          "1",
+		Sport:          SportTennis,
 		Wojewodztwo:    "7",
 		Miejscowosc:    "1",
 		Dzielnica:      "0",
@@ -53,36 +64,33 @@ func (s *Service) GetCourts(
 
 	var courts []CourtResult
 
-	doc.Find("div").
-		EachWithBreak(func(_ int, s *goquery.Selection) bool {
-			if id, _ := s.Attr("id"); id == "collapse_zajete" {
-				return false
+	doc.Find("table.table-bordered tbody tr").
+		EachWithBreak(func(i int, s *goquery.Selection) bool {
+
+			// club
+			club := s.Find("h3.list-group-item-heading a")
+			reserve := s.Find("td.vert-align a.btn")
+			address := s.Find("p.list-group-item-text")
+			data := s.Find("td.vert-align h4")
+			isMuted := data.Parent().HasClass("text-muted")
+			courtType := data.Eq(0)
+			price := data.Eq(1)
+			href, _ := reserve.Attr("href")
+
+			if isMuted || club.Length() == 0 || href == "" || price.Length() == 0 || price.Text() == "0,00" {
+				return true
 			}
 
-			s.Find("table.table-bordered tbody tr").
-				Each(func(i int, s *goquery.Selection) {
-
-					// club
-					club := s.Find("h3.list-group-item-heading a")
-					address := s.Find("p.list-group-item-text")
-					courtType := s.Find("td.vert-align h4").Eq(0)
-					price := s.Find("td.vert-align h4").Eq(1)
-
-					if club.Length() == 0 || price.Length() == 0 || price.Text() == "0,00" {
-						return
-					}
-
-					href, _ := club.Attr("href")
-
-					courts = append(courts, CourtResult{
-						HRef:    _hrefBaseURL + href,
-						Club:    simplifyString(club.Text()),
-						Type:    simplifyString(courtType.Text()),
-						Price:   simplifyString(price.Text()),
-						Address: simplifyString(address.Text()),
-					})
-				})
-
+			//nolint:errcheck
+			res := CourtResult{
+				HRef:    _hrefBaseURL + href,
+				Club:    simplifyString(club.Text()),
+				Type:    simplifyString(courtType.Text()),
+				Price:   simplifyString(price.Text()),
+				Address: simplifyString(address.Text()),
+			}
+			slog.Info("found", "result", res)
+			courts = append(courts, res)
 			return true
 		})
 
@@ -113,11 +121,6 @@ func (s *Service) GetCourts(
 	// 	last = c
 	// }
 }
-
-const (
-	_hrefBaseURL = "https://kluby.org/tenis/wyszukaj"
-	_ajaxBaseURL = "https://kluby.org/ajax/wyszukiwarka.php"
-)
 
 type CourtResult struct {
 	HRef    string
@@ -171,26 +174,24 @@ func query(
 		return nil, fmt.Errorf("fetch: %w", err)
 	}
 
-	// if resp.Body != nil {
-	// defer resp.Body.Close()
-	// }
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
 	}
 
-	// b, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("read all body: %w", err)
-	// }
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read all body: %w", err)
+	}
 
-	// r := bytes.NewReader(b)
-	// f, err := os.OpenFile("/tmp/response.html", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("open file: %w", err)
-	// }
-	//
-	// teeR := io.TeeReader(r, f)
+	r := bytes.NewReader(b)
+	f, err := os.OpenFile("/tmp/response.html", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		return nil, fmt.Errorf("open file: %w", err)
+	}
 
-	return resp.Body, nil
+	return io.NopCloser(io.TeeReader(r, f)), nil
 }

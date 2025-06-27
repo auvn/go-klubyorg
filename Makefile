@@ -1,3 +1,4 @@
+export SERVICE_NAME=klubyorg
 export GOBIN := $(PWD)/bin
 export PATH := $(GOBIN):$(PATH)
 
@@ -15,5 +16,10 @@ tools/go.mod:
 
 .PHONY: generate
 generate:  ./bin/buf
-	go generate ./...
-	go mod tidy
+	@go generate ./...
+	@go mod tidy
+
+.PHONY: serve
+serve:
+	@docker build . -t $(SERVICE_NAME)
+	@docker run -p 8080:8080 $(SERVICE_NAME)

@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -trimpath -ldflags="-w -s" -o /bin/service ./cmd/klubyorg/...
+RUN go build -trimpath -ldflags="-w -s" -o /bin/service ./cmd/service/...
 
 FROM gcr.io/distroless/base-debian11:nonroot
 USER nonroot:nonroot
