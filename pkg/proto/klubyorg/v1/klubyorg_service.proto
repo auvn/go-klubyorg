@@ -5,9 +5,9 @@ package klubyorg.v1;
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1";
+option go_package = "github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1;klubyorgv1";
 
-service GetCourtsService {
+service CourtsService {
   rpc GetCourts(GetCourtsRequest) returns (GetCourtsResponse);
 }
 

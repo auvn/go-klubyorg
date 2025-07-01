@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package tgbot.v1;
+
+option go_package = "github.com/auvn/go-klubyorg/pkg/gen/proto/tgbot/v1;tgbotv1";
+
+message Callbacks {
+  message Data {
+    oneof v {
+      ChangeDateTime change_datetime = 1;
+      SelectDuration select_duration = 2;
+      SelectDateTime select_date_time = 3;
+      SelectHourPrecision select_hour_precision = 4;
+      SelectHour select_hour = 5;
+
+      State finalize = 100;
+      State reset = 101;
+    }
+  }
+
+  message State {
+    int32 ts = 1;
+    oneof v {
+      CheckCourts check_courts = 100;
+    }
+  }
+
+  message SelectHourPrecision {
+    bool halfes = 1;
+  }
+
+  message ChangeDateTime {
+    int32 datetime = 1;
+  }
+
+  message SelectDateTime {
+    int32 datetime = 1;
+  }
+
+  message SelectHour {
+    int32 hour = 1;
+  }
+
+  message SelectDuration {
+    int32 hour_halfs = 1;
+  }
+
+  message CheckCourts {
+    SelectDateTime datetime = 1;
+    SelectDuration duration = 2;
+    SelectHourPrecision hour_precision = 3;
+  }
+}

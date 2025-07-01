@@ -1,12 +1,15 @@
 package klubyorg
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"log/slog"
+	"math/big"
 	"net/http"
 	"net/url"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -15,7 +18,16 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+const (
+	_hrefBaseURL = "https://kluby.org/tenis/wyszukaj"
+	_ajaxBaseURL = "https://kluby.org/ajax/wyszukiwarka.php"
+)
+
 const _30minsDuration = 30 * time.Minute
+
+const (
+	SportTennis = "1"
+)
 
 type Service struct{}
 
@@ -30,12 +42,12 @@ func (s *Service) GetCourts(
 ) ([]CourtResult, error) {
 	reservationDuration := duration.Minutes() / _30minsDuration.Minutes()
 	body, err := query(ctx, SearchParams{
-		Sport:          "1",
+		Sport:          SportTennis,
 		Wojewodztwo:    "7",
 		Miejscowosc:    "1",
 		Dzielnica:      "0",
 		Klub:           "0",
-		DataRezerwacji: ts.Add(_30minsDuration).Round(_30minsDuration).Format("2006-01-02 15:04:05"),
+		DataRezerwacji: ts.Format("2006-01-02 15:04:05"),
 		CzasRezerwacji: strconv.Itoa(int(reservationDuration)),
 	})
 
@@ -53,36 +65,44 @@ func (s *Service) GetCourts(
 
 	var courts []CourtResult
 
-	doc.Find("div").
-		EachWithBreak(func(_ int, s *goquery.Selection) bool {
-			if id, _ := s.Attr("id"); id == "collapse_zajete" {
-				return false
+	doc.Find("table.table-bordered tbody tr").
+		EachWithBreak(func(i int, s *goquery.Selection) bool {
+
+			// club
+			club := s.Find("h3.list-group-item-heading a")
+			reserve := s.Find("td.vert-align a.btn")
+			address := s.Find("p.list-group-item-text")
+			data := s.Find("td.vert-align h4")
+			isMuted := data.Parent().HasClass("text-muted")
+			courtType := data.Eq(0)
+			price := data.Eq(1)
+			href, _ := reserve.Attr("href")
+
+			if isMuted ||
+				club.Length() == 0 ||
+				href == "" ||
+				price.Length() == 0 ||
+				price.Text() == "0,00" {
+				return true
 			}
 
-			s.Find("table.table-bordered tbody tr").
-				Each(func(i int, s *goquery.Selection) {
+			priceStr := simplifyString(price.Text())
+			parsedPrice, _, err := new(big.Float).Parse(
+				strings.ReplaceAll(priceStr, ",", "."), 10,
+			)
+			if err != nil {
+				return true
+			}
 
-					// club
-					club := s.Find("h3.list-group-item-heading a")
-					address := s.Find("p.list-group-item-text")
-					courtType := s.Find("td.vert-align h4").Eq(0)
-					price := s.Find("td.vert-align h4").Eq(1)
-
-					if club.Length() == 0 || price.Length() == 0 || price.Text() == "0,00" {
-						return
-					}
-
-					href, _ := club.Attr("href")
-
-					courts = append(courts, CourtResult{
-						HRef:    _hrefBaseURL + href,
-						Club:    simplifyString(club.Text()),
-						Type:    simplifyString(courtType.Text()),
-						Price:   simplifyString(price.Text()),
-						Address: simplifyString(address.Text()),
-					})
-				})
-
+			//nolint:errcheck
+			res := CourtResult{
+				HRef:    _hrefBaseURL + href,
+				Club:    simplifyString(club.Text()),
+				Type:    simplifyString(courtType.Text()),
+				Price:   parsedPrice,
+				Address: simplifyString(address.Text()),
+			}
+			courts = append(courts, res)
 			return true
 		})
 
@@ -92,7 +112,11 @@ func (s *Service) GetCourts(
 
 	slices.SortFunc(courts,
 		func(a, b CourtResult) int {
-			return strings.Compare(a.HRef, b.HRef)
+			priceCmp := a.Price.Cmp(b.Price)
+			if priceCmp == 0 {
+				return strings.Compare(a.HRef, b.HRef)
+			}
+			return priceCmp
 		},
 	)
 
@@ -114,17 +138,12 @@ func (s *Service) GetCourts(
 	// }
 }
 
-const (
-	_hrefBaseURL = "https://kluby.org/tenis/wyszukaj"
-	_ajaxBaseURL = "https://kluby.org/ajax/wyszukiwarka.php"
-)
-
 type CourtResult struct {
 	HRef    string
 	Club    string
 	Address string
 	Type    string
-	Price   string
+	Price   *big.Float
 }
 
 func simplifyString(s string) string {
@@ -171,26 +190,24 @@ func query(
 		return nil, fmt.Errorf("fetch: %w", err)
 	}
 
-	// if resp.Body != nil {
-	// defer resp.Body.Close()
-	// }
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
 	}
 
-	// b, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("read all body: %w", err)
-	// }
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read all body: %w", err)
+	}
 
-	// r := bytes.NewReader(b)
-	// f, err := os.OpenFile("/tmp/response.html", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("open file: %w", err)
-	// }
-	//
-	// teeR := io.TeeReader(r, f)
+	r := bytes.NewReader(b)
+	f, err := os.OpenFile("/tmp/response.html", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		return nil, fmt.Errorf("open file: %w", err)
+	}
 
-	return resp.Body, nil
+	return io.NopCloser(io.TeeReader(r, f)), nil
 }

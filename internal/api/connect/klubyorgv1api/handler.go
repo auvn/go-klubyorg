@@ -1,4 +1,4 @@
-package v1api
+package klubyorgv1api
 
 import (
 	"context"
@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/auvn/go-klubyorg/internal/service/klubyorg"
-	v1 "github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1"
-	"github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1/v1connect"
+	klubyorgv1 "github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1"
+	"github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1/klubyorgv1connect"
 	"github.com/bufbuild/connect-go"
 )
 
-var _ v1connect.GetCourtsServiceHandler = (*Handler)(nil)
+var _ klubyorgv1connect.CourtsServiceHandler = (*Handler)(nil)
 
 type Service interface {
 	GetCourts(
@@ -35,8 +35,8 @@ func NewHandler(
 
 func (h *Handler) GetCourts(
 	ctx context.Context,
-	in *connect.Request[v1.GetCourtsRequest],
-) (*connect.Response[v1.GetCourtsResponse], error) {
+	in *connect.Request[klubyorgv1.GetCourtsRequest],
+) (*connect.Response[klubyorgv1.GetCourtsResponse], error) {
 	courts, err := h.svc.GetCourts(
 		ctx,
 		in.Msg.GetTs().AsTime(),
@@ -46,24 +46,24 @@ func (h *Handler) GetCourts(
 		return nil, fmt.Errorf("svc.GetCourts: %w", err)
 	}
 
-	apicourts := make([]*v1.GetCourtsResponse_Court, 0, len(courts))
+	apicourts := make([]*klubyorgv1.GetCourtsResponse_Court, 0, len(courts))
 	for _, c := range courts {
 		apicourts = append(apicourts,
-			&v1.GetCourtsResponse_Court{
+			&klubyorgv1.GetCourtsResponse_Court{
 				ReservationUrl: c.HRef,
-				Club: &v1.Club{
+				Club: &klubyorgv1.Club{
 					ClubName:    c.Club,
 					ClubAddress: c.Address,
 				},
-				CourtPrice: &v1.CourtPrice{
+				CourtPrice: &klubyorgv1.CourtPrice{
 					CourtType:  c.Type,
-					CourtPrice: c.Price,
+					CourtPrice: c.Price.Text('f', 2),
 				},
 			},
 		)
 	}
 
-	return connect.NewResponse(&v1.GetCourtsResponse{
+	return connect.NewResponse(&klubyorgv1.GetCourtsResponse{
 		Courts: apicourts,
 	}), nil
 }
