@@ -80,14 +80,38 @@ func (b *Bot) handleCheckCourtsCallbackQuery(
 			return fmt.Errorf("courts.GetCourts: %w", err)
 		}
 
+		type club struct {
+			MainButton models.InlineKeyboardButton
+			Options    []models.InlineKeyboardButton
+		}
+		byClub := map[string]*club{}
 		buttons := [][]models.InlineKeyboardButton{}
 		for _, c := range result {
-			buttons = append(buttons, []models.InlineKeyboardButton{
-				{
-					Text: c.Price.String() + " " + c.Club + " " + c.Type,
-					URL:  c.HRef,
-				},
-			})
+			knownClub, ok := byClub[c.HRef]
+			if ok {
+				byClub[c.HRef] = &club{
+					MainButton: models.InlineKeyboardButton{
+						Text: c.Club + " " + c.Address,
+						URL:  c.HRef,
+					},
+					Options: []models.InlineKeyboardButton{
+						{
+							Text:     c.Price.String() + "",
+							CopyText: models.CopyTextButton{},
+						},
+					},
+				}
+			} else {
+				knownClub.Options = append(knownClub.Options, models.InlineKeyboardButton{
+					Text:     c.Price.String() + "",
+					CopyText: models.CopyTextButton{},
+				})
+			}
+		}
+
+		for _, c := range byClub {
+			buttons = append(buttons, []models.InlineKeyboardButton{c.MainButton})
+			buttons = append(buttons, c.Options)
 		}
 
 		buttons = append(buttons, []models.InlineKeyboardButton{
