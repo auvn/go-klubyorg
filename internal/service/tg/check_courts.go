@@ -88,7 +88,7 @@ func (b *Bot) handleCheckCourtsCallbackQuery(
 		buttons := [][]models.InlineKeyboardButton{}
 		for _, c := range result {
 			knownClub, ok := byClub[c.HRef]
-			if ok {
+			if !ok {
 				byClub[c.HRef] = &club{
 					MainButton: models.InlineKeyboardButton{
 						Text: c.Club + " " + c.Address,
