@@ -19,11 +19,13 @@ func main() {
 
 	klubySvc := klubyorg.NewService()
 
-	tgBot := tg.MustNewBot(os.Getenv("TG_BOT_TOKEN"), klubySvc)
+	if tgBotToken := os.Getenv("TG_BOT_TOKEN"); tgBotToken != "" {
+		tgBot := tg.MustNewBot(tgBotToken, klubySvc)
 
-	app.Go(func(ctx context.Context) error {
-		return tgBot.Serve(ctx)
-	})
+		app.Go(func(ctx context.Context) error {
+			return tgBot.Serve(ctx)
+		})
+	}
 
 	app.Go(func(ctx context.Context) error {
 		var mux http.ServeMux

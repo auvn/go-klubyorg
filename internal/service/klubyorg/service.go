@@ -65,45 +65,62 @@ func (s *Service) GetCourts(
 
 	var courts []CourtResult
 
+	var lastClub struct {
+		Name    string
+		Href    string
+		Address string
+	}
 	doc.Find("table.table-bordered tbody tr").
-		EachWithBreak(func(i int, s *goquery.Selection) bool {
-
+		Each(func(i int, s *goquery.Selection) {
 			// club
 			club := s.Find("h3.list-group-item-heading a")
 			reserve := s.Find("td.vert-align a.btn")
+			href, _ := reserve.Attr("href")
 			address := s.Find("p.list-group-item-text")
+
 			data := s.Find("td.vert-align h4")
 			isMuted := data.Parent().HasClass("text-muted")
 			courtType := data.Eq(0)
 			price := data.Eq(1)
-			href, _ := reserve.Attr("href")
+
+			clubName := club.Text()
+			addressStr := address.Text()
+			if clubName == "" {
+				clubName = lastClub.Name
+				addressStr = lastClub.Address
+				href = lastClub.Href
+			}
 
 			if isMuted ||
-				club.Length() == 0 ||
+				clubName == "" ||
 				href == "" ||
 				price.Length() == 0 ||
 				price.Text() == "0,00" {
-				return true
+				return
 			}
+
+			lastClub.Name = simplifyString(clubName)
+			lastClub.Href = href
+			lastClub.Address = simplifyString(addressStr)
 
 			priceStr := simplifyString(price.Text())
 			parsedPrice, _, err := new(big.Float).Parse(
 				strings.ReplaceAll(priceStr, ",", "."), 10,
 			)
 			if err != nil {
-				return true
+				slog.Warn("parse price", "error", err, "price", price.Text())
+				return
 			}
 
 			//nolint:errcheck
 			res := CourtResult{
-				HRef:    _hrefBaseURL + href,
-				Club:    simplifyString(club.Text()),
+				HRef:    _hrefBaseURL + lastClub.Href,
+				Club:    lastClub.Name,
+				Address: lastClub.Address,
 				Type:    simplifyString(courtType.Text()),
 				Price:   parsedPrice,
-				Address: simplifyString(address.Text()),
 			}
 			courts = append(courts, res)
-			return true
 		})
 
 	if len(courts) == 0 {
