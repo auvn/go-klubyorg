@@ -105,8 +105,10 @@ func (b *Bot) handleCheckCourtsCallbackQuery(
 				}
 			} else {
 				knownClub.Options = append(knownClub.Options, models.InlineKeyboardButton{
-					Text:     c.Price.String() + "",
-					CopyText: models.CopyTextButton{},
+					Text: c.Price.String() + "",
+					CopyText: models.CopyTextButton{
+						Text: c.Club + " " + c.Price.String() + " " + c.Type,
+					},
 				})
 			}
 		}
