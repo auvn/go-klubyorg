@@ -96,8 +96,10 @@ func (b *Bot) handleCheckCourtsCallbackQuery(
 					},
 					Options: []models.InlineKeyboardButton{
 						{
-							Text:     c.Price.String() + "",
-							CopyText: models.CopyTextButton{},
+							Text: c.Price.String() + " " + c.Type,
+							CopyText: models.CopyTextButton{
+								Text: c.Club + " " + c.Price.String() + " " + c.Type,
+							},
 						},
 					},
 				}
