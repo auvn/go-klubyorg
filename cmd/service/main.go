@@ -11,19 +11,42 @@ import (
 	"github.com/auvn/go-klubyorg/internal/corsx"
 	"github.com/auvn/go-klubyorg/internal/service/klubyorg"
 	"github.com/auvn/go-klubyorg/internal/service/tg"
+	"github.com/auvn/go-klubyorg/internal/service/tg/tgbundle"
+	"github.com/auvn/go-klubyorg/internal/service/tg/tgstorage"
 	"github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1/klubyorgv1connect"
 )
 
+type Config struct {
+	Telegram struct {
+		BotToken      string
+		StorageChatID int64
+	}
+}
+
 func main() {
+	var cfg Config
+
+	cfg.Telegram.BotToken = os.Getenv("TG_BOT_TOKEN")
+	cfg.Telegram.StorageChatID = -4912380855
+
 	app := appx.NewApp()
 
 	klubySvc := klubyorg.NewService()
 
-	if tgBotToken := os.Getenv("TG_BOT_TOKEN"); tgBotToken != "" {
-		tgBot := tg.MustNewBot(tgBotToken, klubySvc)
+	if tgBotToken := cfg.Telegram.BotToken; tgBotToken != "" {
+		botapi, botupdates := tgbundle.NewBot(tgBotToken)
+		baseStorage := tgstorage.NewStorage(cfg.Telegram.StorageChatID, botapi)
+		controller := tg.NewBotController(botapi, klubySvc, baseStorage)
 
 		app.Go(func(ctx context.Context) error {
-			return tgBot.Serve(ctx)
+			go tgbundle.NewUpdatesHandler(
+				controller, botupdates,
+			)(
+				context.WithoutCancel(ctx),
+			)
+
+			botapi.Start(ctx)
+			return nil
 		})
 	}
 

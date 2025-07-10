@@ -4,106 +4,71 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
 
+	tgbotv1 "github.com/auvn/go-klubyorg/pkg/gen/proto/tgbot/v1"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
 
-type Bot struct {
-	me     *bot.Bot
-	courts CourtsService
+type BotController struct {
+	me      *bot.Bot
+	courts  CourtsService
+	storage Storage
 }
 
-func MustNewBot(
-	token string,
+func NewBotController(
+	tgbot *bot.Bot,
 	courts CourtsService,
-) *Bot {
-	b, err := NewBot(
-		token,
+	storage Storage,
+) *BotController {
+	return &BotController{
+		tgbot,
 		courts,
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	return b
-}
-
-func NewBot(
-	token string,
-	courts CourtsService,
-) (*Bot, error) {
-	wrapper := Bot{
-		nil,
-		courts,
-	}
-	b, err := bot.New(
-		token,
-		bot.WithDebug(),
-		bot.WithNotAsyncHandlers(),
-		bot.WithDefaultHandler(wrapper.handler),
-		bot.WithCheckInitTimeout(5*time.Second),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("bot.New: %w", err)
-	}
-
-	wrapper.me = b
-
-	return &Bot{
-		b,
-		courts,
-	}, nil
-}
-
-func (b *Bot) Serve(ctx context.Context) error {
-	b.me.Start(ctx)
-	return nil
-}
-
-func (b *Bot) handler(
-	ctx context.Context,
-	_ *bot.Bot,
-	upd *models.Update,
-) {
-	slog.Info("update", "data", upd)
-
-	var err error
-	switch {
-	case upd.Message != nil:
-		err = b.handleMessage(ctx, upd.Message)
-	case upd.CallbackQuery != nil:
-		err = b.handleCallbackQuery(ctx, upd.CallbackQuery)
-	}
-
-	if err != nil {
-		slog.ErrorContext(ctx, "handler error", "error", err)
+		storage,
 	}
 }
 
-func (b *Bot) handleMessage(
+type Actions struct {
+	EditMessage *bot.EditMessageTextParams
+	SendMessage *bot.SendMessageParams
+}
+
+func (b *BotController) HandleMessage(
 	ctx context.Context,
 	msg *models.Message,
 ) error {
+	var actions *Actions
+	var err error
 	switch msg.Text {
 	case "/commands", "/start":
-		courtChecker, err := b.buildCourtChecker(
-			msg.Chat.ID,
+		var newMsg *UserMessage
+		newMsg, err = b.buildCourtCheckerState(
+			ctx,
 			timeNow(),
 			nil,
 			nil,
 		)
+
 		if err != nil {
 			return err
 		}
-		_, err = b.me.SendMessage(ctx, courtChecker)
-		return err
+
+		actions = &Actions{
+			SendMessage: &bot.SendMessageParams{
+				ChatID:    msg.Chat.ID,
+				Text:      newMsg.Markdown,
+				ParseMode: models.ParseModeMarkdown,
+				ReplyMarkup: models.InlineKeyboardMarkup{
+					InlineKeyboard: newMsg.Keyboard,
+				},
+			},
+		}
 	}
-	return nil
+
+	return b.applyActions(ctx, actions)
 }
 
-func (b *Bot) handleCallbackQuery(
+func (b *BotController) HandleCallbackQuery(
 	ctx context.Context,
 	cb *models.CallbackQuery,
 ) error {
@@ -111,7 +76,7 @@ func (b *Bot) handleCallbackQuery(
 		return nil
 	}
 
-	state, err := b.getState(cb.Message.Message)
+	state, err := b.getState(ctx, cb.Message.Message)
 	if err != nil {
 		return err
 	}
@@ -121,16 +86,54 @@ func (b *Bot) handleCallbackQuery(
 		return err
 	}
 
-	switch {
-	case parsedCb.GetReset_() != nil:
-		state = parsedCb.GetReset_()
+	if state == nil {
+		state = &tgbotv1.State{
+			Ts: int32(timeNow().Unix()),
+		}
 	}
 
-	slog.InfoContext(ctx, "callback", "data", parsedCb, "state", state)
+	ts := parsedCb.GetChangeDatetime().GetDatetime()
+	if ts == 0 {
+		ts = state.GetTs()
+	}
 
+	tm := timeUnix(int64(ts))
+
+	slog.InfoContext(ctx, "callback", "time", tm, "data", parsedCb, "state", state)
+
+	var actions *Actions
 	switch {
 	case state.GetCheckCourts() != nil:
-		return b.handleCheckCourtsCallbackQuery(ctx, state, parsedCb, cb)
+		actions, err = b.handleCheckCourtsCallbackQuery(
+			ctx,
+			tm,
+			state.GetCheckCourts(),
+			parsedCb,
+			cb,
+		)
+	case state.GetCheckCourtsResults() != nil:
+		actions, err = b.handleCheckCourtsResultsCallbackQuery(
+			ctx,
+			tm,
+			state,
+			parsedCb,
+			cb,
+		)
+	}
+	if err != nil {
+		return err
+	}
+
+	if err := b.applyActions(ctx, actions); err != nil {
+		return fmt.Errorf("applyActions: %w", err)
+	}
+
+	if _, err := b.me.AnswerCallbackQuery(ctx,
+		&bot.AnswerCallbackQueryParams{
+			CallbackQueryID: cb.ID,
+			ShowAlert:       false,
+		}); err != nil {
+		return fmt.Errorf("me.AnswerCallbackQuery: %w", err)
 	}
 
 	return nil

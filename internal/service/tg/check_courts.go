@@ -3,9 +3,10 @@ package tg
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 
+	"github.com/auvn/go-klubyorg/internal/service/tg/dataenc"
+	"github.com/auvn/go-klubyorg/internal/service/tg/tgstorage"
 	tgbotv1 "github.com/auvn/go-klubyorg/pkg/gen/proto/tgbot/v1"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -18,58 +19,65 @@ const (
 	_textCheckCourts   = "Select a date 📅 and duration 🕒 then hit the Check Courts button"
 )
 
-func (b *Bot) getState(
-	msg *models.Message,
-) (*tgbotv1.Callbacks_State, error) {
-	if msg.ReplyMarkup == nil {
-		return nil, nil
-	}
+func (b *BotController) handleCheckCourtsResultsCallbackQuery(
+	ctx context.Context,
+	tm time.Time,
+	state *tgbotv1.State,
+	cbData *tgbotv1.Callbacks_Data,
+	cb *models.CallbackQuery,
+) (*Actions, error) {
+	switch {
+	case cbData.GetUpdatePager() != nil:
+		storedClubs, err := b.storage.Get(ctx,
+			&tgstorage.Receipt{
+				MessageID: int(state.GetCheckCourtsResults().GetFileReceipt().GetMessageId()),
+			},
+		)
 
-	if len(msg.ReplyMarkup.InlineKeyboard) == 0 {
-		return nil, nil
-	}
-
-	for _, row := range msg.ReplyMarkup.InlineKeyboard {
-		for _, but := range row {
-			if but.Text == _buttonCheckCourts { // TODO: const
-				state, err := decodeCallbackData(but.CallbackData)
-				if err != nil {
-					return nil, fmt.Errorf("decode callback: %w", err)
-				}
-
-				switch {
-				case state.GetFinalize() != nil:
-					return state.GetFinalize(), nil
-				}
-			}
+		if err != nil {
+			return nil, err
 		}
+
+		var clubs tgbotv1.State_AvailableCourts
+		if err := dataenc.Decode(storedClubs, &clubs); err != nil {
+			return nil, fmt.Errorf("decode stored clubs: %w", err)
+		}
+
+		date := timeUnix(int64(state.GetCheckCourtsResults().GetParams().GetDatetime().GetDatetime()))
+		newPager := cbData.GetUpdatePager()
+		userMessage := buildCheckCourtsResultsMessage(
+			date,
+			time.Hour,
+			state,
+			newPager,
+			clubs.Clubs,
+		)
+		return &Actions{
+			EditMessage: &bot.EditMessageTextParams{
+				ChatID:    cb.Message.Message.Chat.ID,
+				MessageID: cb.Message.Message.ID,
+				Text:      userMessage.Markdown,
+				ParseMode: models.ParseModeMarkdown,
+				ReplyMarkup: models.InlineKeyboardMarkup{
+					InlineKeyboard: userMessage.Keyboard,
+				},
+			},
+		}, nil
 	}
 
 	return nil, nil
 }
 
-func (b *Bot) handleCheckCourtsCallbackQuery(
+func (b *BotController) handleCheckCourtsCallbackQuery(
 	ctx context.Context,
-	state *tgbotv1.Callbacks_State,
+	tm time.Time,
+	state *tgbotv1.State_CheckCourts,
 	cbData *tgbotv1.Callbacks_Data,
 	cb *models.CallbackQuery,
-) error {
-	ts := cbData.GetChangeDatetime().GetDatetime()
-	if ts == 0 {
-		ts = state.GetTs()
-	}
-
-	tm := timeUnix(int64(ts))
-
-	slog.InfoContext(ctx, "state",
-		"time", tm,
-		"sate", state,
-		"data", cbData,
-	)
-
-	if cmd := cbData.GetFinalize().GetCheckCourts(); cmd != nil {
-		hourHalfs := cmd.GetDuration().GetHourHalfs()
-		date := timeUnix(int64(cmd.GetDatetime().GetDatetime()))
+) (*Actions, error) {
+	if cbData.GetFinalize() != nil {
+		hourHalfs := state.GetDuration().GetHourHalfs()
+		date := timeUnix(int64(state.GetDatetime().GetDatetime()))
 		duration := time.Duration(hourHalfs*_30mins) * time.Minute
 		result, err := b.courts.GetCourts(
 			ctx,
@@ -77,177 +85,222 @@ func (b *Bot) handleCheckCourtsCallbackQuery(
 			duration,
 		)
 		if err != nil {
-			return fmt.Errorf("courts.GetCourts: %w", err)
+			return nil, fmt.Errorf("courts.GetCourts: %w", err)
 		}
 
-		type club struct {
-			MainButton models.InlineKeyboardButton
-			Options    []models.InlineKeyboardButton
-		}
-		byClub := map[string]*club{}
-		buttons := [][]models.InlineKeyboardButton{}
-		for _, c := range result {
-			knownClub, ok := byClub[c.HRef]
-			if !ok {
-				byClub[c.HRef] = &club{
-					MainButton: models.InlineKeyboardButton{
-						Text: c.Club + " " + c.Address,
-						URL:  c.HRef,
-					},
-					Options: []models.InlineKeyboardButton{
-						{
-							Text: c.Price.String() + " " + c.Type,
-							CopyText: models.CopyTextButton{
-								Text: c.Club + " " + c.Price.String() + " " + c.Type,
-							},
-						},
-					},
-				}
-			} else {
-				knownClub.Options = append(knownClub.Options, models.InlineKeyboardButton{
-					Text: c.Price.String() + "",
-					CopyText: models.CopyTextButton{
-						Text: c.Club + " " + c.Price.String() + " " + c.Type,
-					},
-				})
-			}
+		clubs := collectAvailableCourts(result)
+
+		fileReceipt, err := b.storage.Put(ctx, dataenc.Encode(clubs))
+		if err != nil {
+			return nil, fmt.Errorf("storage.Put: %w", err)
 		}
 
-		for _, c := range byClub {
-			buttons = append(buttons, []models.InlineKeyboardButton{c.MainButton})
-			buttons = append(buttons, c.Options)
-		}
-
-		buttons = append(buttons, []models.InlineKeyboardButton{
-			{
-				Text:         "Back",
-				CallbackData: encodeCallbackData(resetCallback(state)),
+		newState := tgbotv1.State{
+			Ts: int32(tm.Unix()),
+			V: &tgbotv1.State_CheckCourtsResults_{
+				CheckCourtsResults: &tgbotv1.State_CheckCourtsResults{
+					Params: state,
+					Pager: &tgbotv1.Callbacks_Pager{
+						Limit: 5,
+					},
+					FileReceipt: &tgbotv1.StorageMetadata_FileReceipt{
+						MessageId: int64(fileReceipt.MessageID),
+					},
+				},
 			},
-		})
-		_, err = b.me.EditMessageText(ctx, &bot.EditMessageTextParams{
-			ChatID:    cb.Message.Message.Chat.ID,
-			MessageID: cb.Message.Message.ID,
-			Text: fmt.Sprintf(
-				"📅 %s 🕒 %.1fh",
-				date.Format(time.DateTime), duration.Hours(),
-			),
-			ReplyMarkup: models.InlineKeyboardMarkup{
-				InlineKeyboard: buttons,
+		}
+
+		userMessage := buildCheckCourtsResultsMessage(
+			date,
+			duration,
+			&newState,
+			newState.GetCheckCourtsResults().GetPager(),
+			clubs.Clubs,
+		)
+
+		return &Actions{
+			EditMessage: &bot.EditMessageTextParams{
+				ChatID:    cb.Message.Message.Chat.ID,
+				MessageID: cb.Message.Message.ID,
+				Text:      userMessage.Markdown,
+				ParseMode: models.ParseModeMarkdown,
+				ReplyMarkup: models.InlineKeyboardMarkup{
+					InlineKeyboard: userMessage.Keyboard,
+				},
 			},
-		})
-		return err
+		}, nil
 	}
 
-	courtChecker, err := b.buildCourtChecker(
-		cb.Message.Message.Chat.ID,
+	courtChecker, err := b.buildCourtCheckerState(
+		ctx,
 		tm,
-		state.GetCheckCourts(),
+		state,
 		cbData,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	_, err = b.me.EditMessageText(ctx,
-		&bot.EditMessageTextParams{
-			ChatID:      cb.Message.Message.Chat.ID,
-			MessageID:   cb.Message.Message.ID,
-			Text:        _textCheckCourts,
-			ReplyMarkup: courtChecker.ReplyMarkup,
-		},
-	)
-	return err
 
+	return &Actions{
+		EditMessage: &bot.EditMessageTextParams{
+			ChatID:    cb.Message.Message.Chat.ID,
+			MessageID: cb.Message.Message.ID,
+			Text:      courtChecker.Markdown,
+			ParseMode: models.ParseModeMarkdown,
+			ReplyMarkup: models.InlineKeyboardMarkup{
+				InlineKeyboard: courtChecker.Keyboard,
+			},
+		},
+	}, nil
 }
 
-func (b *Bot) buildCourtChecker(
-	chatID int64,
+type CourtChecker struct {
+	Message            string
+	Keyboard           [][]models.InlineKeyboardButton
+	State              *tgbotv1.State
+	FinalizeButtonText string
+}
+
+type UserMessage struct {
+	Markdown string
+	Keyboard [][]models.InlineKeyboardButton
+}
+
+func (b *BotController) buildCourtCheckerState(
+	ctx context.Context,
 	tm time.Time,
-	state *tgbotv1.Callbacks_CheckCourts,
+	state *tgbotv1.State_CheckCourts,
 	cb *tgbotv1.Callbacks_Data,
-) (*bot.SendMessageParams, error) {
+) (*UserMessage, error) {
+	checker, err := b.buildCourtChecker(tm, state, cb)
+	if err != nil {
+		return nil, fmt.Errorf("build court checker: %w", err)
+	}
+
+	if checker.FinalizeButtonText != "" {
+		checker.Keyboard = append(checker.Keyboard, []models.InlineKeyboardButton{
+			{
+				Text:         checker.FinalizeButtonText,
+				CallbackData: encodeCallbackData(finalizeCallback()),
+			},
+		})
+	}
+
+	text, _ := messageTextWithState(checker.Message, checker.State)
+	return &UserMessage{
+		Markdown: text,
+		Keyboard: checker.Keyboard,
+	}, nil
+}
+
+func (b *BotController) buildCourtChecker(
+	tm time.Time,
+	state *tgbotv1.State_CheckCourts,
+	cb *tgbotv1.Callbacks_Data,
+) (*CourtChecker, error) {
+
+	tm = tm.Round(30 * time.Minute)
 
 	kb := [][]models.InlineKeyboardButton{}
 
-	calendarPicker := buildDayPicker(tm)
+	calendarPicker, selectedTime := buildDayPicker(tm)
 	kb = append(kb, calendarPicker...)
-
-	hourPicker, selectedTime := buildHourPicker(tm, state, cb)
-	kb = append(kb, hourPicker)
 
 	durationPicker, selectedDuration := buildDurationPicker(state, cb)
 	kb = append(kb, durationPicker)
 
-	kb = append(kb, []models.InlineKeyboardButton{
-		{
-			Text: _buttonCheckCourts,
-			CallbackData: encodeCallbackData(
-				finalizeCallback(
-					checkCourtsState(
-						tm,
-						selectedTime,
-						selectedDuration,
-						0,
-					),
-				),
-			),
-		},
-	})
+	finalState := checkCourtsState(
+		tm,
+		selectedTime,
+		selectedDuration,
+		0,
+	)
 
-	return &bot.SendMessageParams{
-		ChatID: chatID,
-		Text:   _textCheckCourts,
-		ReplyMarkup: &models.InlineKeyboardMarkup{
-			InlineKeyboard: kb,
-		},
+	return &CourtChecker{
+		Message:            _textCheckCourts,
+		Keyboard:           kb,
+		State:              finalState,
+		FinalizeButtonText: _buttonCheckCourts,
 	}, nil
 }
 
 func buildDayPicker(
 	tm time.Time,
-) [][]models.InlineKeyboardButton {
-	days := [][]models.InlineKeyboardButton{}
-	now := timeNow().Truncate(24 * time.Hour)
-	prevDate := tm.AddDate(0, 0, -1)
-	if prevDate.Truncate(24 * time.Hour).Before(now) {
-		prevDate = tm
+) ([][]models.InlineKeyboardButton, time.Time) {
+	now := timeNow()
+
+	if tm.Before(now) {
+		tm = now.Round(30 * time.Minute)
 	}
 
-	days = append(days,
+	var row [][]models.InlineKeyboardButton
+	row = append(row,
 		[]models.InlineKeyboardButton{
 			{
-				Text: tm.Weekday().String() + " " + tm.Format("02.01"),
+				Text: tm.Weekday().String() + " " + tm.Format("02.01 15:04"),
 				CopyText: models.CopyTextButton{
 					Text: tm.Format(time.DateTime),
 				},
 			},
 		})
 
-	days = append(
-		days,
+	prevDay, nextDay := tm.AddDate(0, 0, -1), tm.AddDate(0, 0, 1)
+	minusHour, plusHour := tm.Add(-time.Hour), tm.Add(time.Hour)
+	minus30Mins, plus30Mins := tm.Add(-30*time.Minute), tm.Add(30*time.Minute)
+
+	row = append(
+		row,
 		[]models.InlineKeyboardButton{
 			{
-				Text: "<",
+				Text: "-1d",
 				CallbackData: encodeCallbackData(
-					changeDateTimeCallback(prevDate),
+					changeDateTimeCallback(prevDay),
 				),
 			},
 			{
-				Text: ">",
+				Text: "-1h",
 				CallbackData: encodeCallbackData(
-					changeDateTimeCallback(tm.AddDate(0, 0, 1)),
+					changeDateTimeCallback(minusHour),
+				),
+			},
+
+			{
+				Text: "-30m",
+				CallbackData: encodeCallbackData(
+					changeDateTimeCallback(minus30Mins),
+				),
+			},
+			{
+				Text: "+30m",
+				CallbackData: encodeCallbackData(
+					changeDateTimeCallback(plus30Mins),
+				),
+			},
+			{
+				Text: "+1h",
+				CallbackData: encodeCallbackData(
+					changeDateTimeCallback(plusHour),
+				),
+			},
+			{
+				Text: "+1d",
+				CallbackData: encodeCallbackData(
+					changeDateTimeCallback(nextDay),
 				),
 			},
 		},
 	)
 
-	return days
+	return row, tm
 }
 
 func buildDurationPicker(
-	state *tgbotv1.Callbacks_CheckCourts,
+	state *tgbotv1.State_CheckCourts,
 	cb *tgbotv1.Callbacks_Data,
 ) ([]models.InlineKeyboardButton, int32) {
 	const (
+		minHalves   = 2
+		maxHalves   = 48
 		valuesCount = 5
 	)
 
@@ -256,130 +309,139 @@ func buildDurationPicker(
 		sel = state.GetDuration().GetHourHalfs()
 	}
 
-	var values []models.InlineKeyboardButton
-	for i := range valuesCount {
-		halfes := (i + 1) * 2
-		if i == 0 && sel == 0 {
-			sel = int32(halfes)
-		}
-
-		text := fmt.Sprintf("%dm", halfes*_30mins)
-		if sel == int32(halfes) {
-			text = "*" + text
-		}
-
-		values = append(values, models.InlineKeyboardButton{
-			Text:         text,
-			CallbackData: encodeCallbackData(selectDurationCallback(int32(halfes))),
-		})
+	if sel == 0 {
+		sel = minHalves
 	}
 
-	return values, sel
-}
+	duration := time.Duration(sel*_30mins) * time.Minute
 
-// buildHourPicker
-func buildHourPicker(
-	tm time.Time,
-	state *tgbotv1.Callbacks_CheckCourts,
-	cb *tgbotv1.Callbacks_Data,
-) ([]models.InlineKeyboardButton, time.Time) {
-	const (
-		valuesCount = 3
-	)
+	minus2Halves, minusHalf := sel-2, sel-1
+	plusHalf, plus2Halves := sel+1, sel+2
 
 	var row []models.InlineKeyboardButton
-	now := timeNow()
-
-	selectedHour := int(cb.GetSelectHour().GetHour())
-	if selectedHour == 0 {
-		dt := state.GetDatetime().GetDatetime()
-		if dt > 0 {
-			selectedHour = timeUnix(int64(dt)).Hour()
-		}
+	if minus2Halves < minHalves {
+		minus2Halves = minHalves
+	}
+	if minusHalf < minHalves {
+		minusHalf = minHalves
+	}
+	if plusHalf > maxHalves {
+		plusHalf = maxHalves
+	}
+	if plus2Halves > maxHalves {
+		plus2Halves = maxHalves
 	}
 
-	start := tm
-	if start.Truncate(time.Hour).Before(start) {
-		start = start.Add(30 * time.Minute).Round(time.Hour)
+	row = append(row,
+		models.InlineKeyboardButton{
+			Text:         "-1h",
+			CallbackData: encodeCallbackData(selectDurationCallback(minus2Halves)),
+		},
+		models.InlineKeyboardButton{
+			Text:         "-30m",
+			CallbackData: encodeCallbackData(selectDurationCallback(minusHalf)),
+		},
+		models.InlineKeyboardButton{
+			Text:         fmt.Sprintf("%.1fh", duration.Hours()),
+			CallbackData: encodeCallbackData(selectDurationCallback(sel)),
+		},
+		models.InlineKeyboardButton{
+			Text:         "+30m",
+			CallbackData: encodeCallbackData(selectDurationCallback(plusHalf)),
+		},
+		models.InlineKeyboardButton{
+			Text:         "+1h",
+			CallbackData: encodeCallbackData(selectDurationCallback(plus2Halves)),
+		},
+	)
+	return row, sel
+}
+
+func buildCheckCourtsResultsMessage(
+	date time.Time,
+	duration time.Duration,
+	state *tgbotv1.State,
+	pager *tgbotv1.Callbacks_Pager,
+	clubs []*tgbotv1.State_AvailableCourts_Club,
+) *UserMessage {
+
+	baseMessage := fmt.Sprintf(
+		"📅 %s\n🕘 %s\n🧭 %.1fh",
+		date.Format("Monday 02.01"),
+		date.Format("15:04"),
+		duration.Hours(),
+	)
+	text, _ := messageTextWithState(baseMessage, state)
+
+	return &UserMessage{
+		Markdown: text,
+		Keyboard: buildCheckCourtsResultsViewer(
+			pager,
+			clubs,
+		),
 	}
-	startHour := start.Hour()
+}
 
-	prev, next := calculatePrevNextDates(start, valuesCount)
-
-	if start.After(now) {
-		row = append(row, models.InlineKeyboardButton{
-			Text:         "<",
-			CallbackData: encodeCallbackData(changeDateTimeCallback(prev)),
+func buildCheckCourtsResultsViewer(
+	pager *tgbotv1.Callbacks_Pager,
+	clubs []*tgbotv1.State_AvailableCourts_Club,
+) [][]models.InlineKeyboardButton {
+	start, end := int(pager.GetOffset()), int(pager.GetOffset()+pager.GetLimit())
+	if start < 0 {
+		start = 0
+	}
+	if start > len(clubs) {
+		start = len(clubs)
+	}
+	if end > len(clubs) {
+		end = len(clubs)
+	}
+	clubsToShow := clubs[start:end]
+	var pagerButtons []models.InlineKeyboardButton
+	if start > 0 {
+		pagerButtons = append(pagerButtons, models.InlineKeyboardButton{
+			Text: "<",
+			CallbackData: encodeCallbackData(updatePagerCallback(
+				pager.GetLimit(), int32(start)-pager.GetLimit()),
+			),
 		})
 	}
 
-	var truncated bool
-	for i := range valuesCount {
-		hour := startHour + i
-		if hour > _maxHour {
-			truncated = true
-			break
-		}
-
-		text := fmt.Sprintf("%d:00", hour)
-		if (selectedHour == 0 && i == 0) || selectedHour == hour {
-			text = "*" + text
-			selectedHour = hour
-		}
-
-		row = append(row, models.InlineKeyboardButton{
-			Text:         text,
-			CallbackData: encodeCallbackData(selectHourCallback(int32(hour))),
-		})
-	}
-
-	if !truncated {
-		row = append(row,
+	if end < len(clubs) {
+		pagerButtons = append(pagerButtons,
 			models.InlineKeyboardButton{
-				Text:         ">",
-				CallbackData: encodeCallbackData(changeDateTimeCallback(next)),
+				Text: ">",
+				CallbackData: encodeCallbackData(
+					updatePagerCallback(
+						pager.GetLimit(), int32(end),
+					),
+				),
 			},
 		)
 	}
 
-	return row, time.Date(
-		tm.Year(),
-		tm.Month(),
-		tm.Day(),
-		selectedHour,
-		0,
-		0,
-		0,
-		_loc,
-	)
-}
-
-func calculatePrevNextDates(
-	tm time.Time,
-	hoursShift int,
-) (time.Time, time.Time) {
-
-	nextHours := ensureMaxMin(tm.Hour()+hoursShift, _minHour, _maxHour)
-	prevHours := ensureMaxMin(tm.Hour()-hoursShift, _minHour, _maxHour)
-
-	next := time.Date(tm.Year(), tm.Month(), tm.Day(), nextHours, tm.Minute(), 0, 0, _loc)
-	prev := time.Date(tm.Year(), tm.Month(), tm.Day(), prevHours, tm.Minute(), 0, 0, _loc)
-
-	return prev, next
-}
-
-const (
-	_minHour, _maxHour = 0, 23
-)
-
-func ensureMaxMin(v int, minv int, maxv int) int {
-	if v < minv {
-		return minv
+	var kb [][]models.InlineKeyboardButton
+	kb = append(kb, pagerButtons)
+	for i, club := range clubsToShow {
+		clubText := fmt.Sprintf("%s %s ", club.GetName(), club.GetAddress())
+		kb = append(kb, []models.InlineKeyboardButton{
+			{
+				Text: fmt.Sprintf("%d. %s", start+i+1, clubText),
+				URL:  fmt.Sprintf("%s", club.Url),
+			},
+		})
+		for _, price := range club.GetPrices() {
+			priceText := fmt.Sprintf("%s (%s)", price.GetAmount(), price.GetCourtType())
+			kb = append(kb, []models.InlineKeyboardButton{
+				{
+					Text: priceText,
+					CopyText: models.CopyTextButton{
+						Text: fmt.Sprintf("%s %s", clubText, priceText),
+					},
+				},
+			})
+		}
 	}
 
-	if v >= maxv {
-		return maxv
-	}
-
-	return v
+	return kb
 }

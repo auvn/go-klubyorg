@@ -15,11 +15,11 @@ func encodeCallbackData(cb *tgbotv1.Callbacks_Data) string {
 		panic(err) // we are in trouble
 	}
 
-	return base64.RawStdEncoding.EncodeToString(bb)
+	return base64.RawURLEncoding.EncodeToString(bb)
 }
 
 func decodeCallbackData(str string) (*tgbotv1.Callbacks_Data, error) {
-	bb, err := base64.RawStdEncoding.DecodeString(str)
+	bb, err := base64.RawURLEncoding.DecodeString(str)
 	if err != nil {
 		return nil, fmt.Errorf("base64 decode: %w", err)
 	}
@@ -44,22 +44,18 @@ func changeDateTimeCallback(
 	}
 }
 
-func finalizeCallback(
-	s *tgbotv1.Callbacks_State,
-) *tgbotv1.Callbacks_Data {
+func finalizeCallback() *tgbotv1.Callbacks_Data {
 	return &tgbotv1.Callbacks_Data{
 		V: &tgbotv1.Callbacks_Data_Finalize{
-			Finalize: s,
+			Finalize: &tgbotv1.Callbacks_Empty{},
 		},
 	}
 }
 
-func resetCallback(
-	s *tgbotv1.Callbacks_State,
-) *tgbotv1.Callbacks_Data {
+func resetCallback() *tgbotv1.Callbacks_Data {
 	return &tgbotv1.Callbacks_Data{
 		V: &tgbotv1.Callbacks_Data_Reset_{
-			Reset_: s,
+			Reset_: &tgbotv1.Callbacks_Empty{},
 		},
 	}
 }
@@ -117,17 +113,30 @@ func checkCourtsState(
 	date time.Time,
 	durationHourHalfs int32,
 	hour int32,
-) *tgbotv1.Callbacks_State {
-	return &tgbotv1.Callbacks_State{
+) *tgbotv1.State {
+	return &tgbotv1.State{
 		Ts: int32(ts.Unix()),
-		V: &tgbotv1.Callbacks_State_CheckCourts{
-			CheckCourts: &tgbotv1.Callbacks_CheckCourts{
+		V: &tgbotv1.State_CheckCourts_{
+			CheckCourts: &tgbotv1.State_CheckCourts{
 				Datetime: &tgbotv1.Callbacks_SelectDateTime{
 					Datetime: int32(date.Unix()),
 				},
 				Duration: &tgbotv1.Callbacks_SelectDuration{
 					HourHalfs: durationHourHalfs,
 				},
+			},
+		},
+	}
+}
+
+func updatePagerCallback(
+	limit, offset int32,
+) *tgbotv1.Callbacks_Data {
+	return &tgbotv1.Callbacks_Data{
+		V: &tgbotv1.Callbacks_Data_UpdatePager{
+			UpdatePager: &tgbotv1.Callbacks_Pager{
+				Limit:  int32(limit),
+				Offset: int32(offset),
 			},
 		},
 	}

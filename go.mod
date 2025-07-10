@@ -8,6 +8,7 @@ require (
 	github.com/auvn/go-app v0.0.0-20250626105640-a4d5d79193ab
 	github.com/bufbuild/connect-go v1.10.0
 	github.com/go-telegram/bot v1.15.0
+	github.com/google/uuid v1.6.0
 	github.com/rs/cors v1.11.1
 	google.golang.org/grpc v1.73.0
 	google.golang.org/protobuf v1.36.6

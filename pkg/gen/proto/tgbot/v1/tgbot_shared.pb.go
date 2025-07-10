@@ -21,6 +21,42 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type StorageMetadata struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StorageMetadata) Reset() {
+	*x = StorageMetadata{}
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StorageMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StorageMetadata) ProtoMessage() {}
+
+func (x *StorageMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StorageMetadata.ProtoReflect.Descriptor instead.
+func (*StorageMetadata) Descriptor() ([]byte, []int) {
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0}
+}
+
 type Callbacks struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -29,7 +65,7 @@ type Callbacks struct {
 
 func (x *Callbacks) Reset() {
 	*x = Callbacks{}
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[0]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -41,7 +77,7 @@ func (x *Callbacks) String() string {
 func (*Callbacks) ProtoMessage() {}
 
 func (x *Callbacks) ProtoReflect() protoreflect.Message {
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[0]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -54,7 +90,141 @@ func (x *Callbacks) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Callbacks.ProtoReflect.Descriptor instead.
 func (*Callbacks) Descriptor() ([]byte, []int) {
-	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0}
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{1}
+}
+
+type State struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Ts    int32                  `protobuf:"varint,1,opt,name=ts,proto3" json:"ts,omitempty"`
+	// Types that are valid to be assigned to V:
+	//
+	//	*State_CheckCourts_
+	//	*State_CheckCourtsResults_
+	V             isState_V `protobuf_oneof:"v"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *State) Reset() {
+	*x = State{}
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *State) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*State) ProtoMessage() {}
+
+func (x *State) ProtoReflect() protoreflect.Message {
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use State.ProtoReflect.Descriptor instead.
+func (*State) Descriptor() ([]byte, []int) {
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *State) GetTs() int32 {
+	if x != nil {
+		return x.Ts
+	}
+	return 0
+}
+
+func (x *State) GetV() isState_V {
+	if x != nil {
+		return x.V
+	}
+	return nil
+}
+
+func (x *State) GetCheckCourts() *State_CheckCourts {
+	if x != nil {
+		if x, ok := x.V.(*State_CheckCourts_); ok {
+			return x.CheckCourts
+		}
+	}
+	return nil
+}
+
+func (x *State) GetCheckCourtsResults() *State_CheckCourtsResults {
+	if x != nil {
+		if x, ok := x.V.(*State_CheckCourtsResults_); ok {
+			return x.CheckCourtsResults
+		}
+	}
+	return nil
+}
+
+type isState_V interface {
+	isState_V()
+}
+
+type State_CheckCourts_ struct {
+	CheckCourts *State_CheckCourts `protobuf:"bytes,100,opt,name=check_courts,json=checkCourts,proto3,oneof"`
+}
+
+type State_CheckCourtsResults_ struct {
+	CheckCourtsResults *State_CheckCourtsResults `protobuf:"bytes,101,opt,name=check_courts_results,json=checkCourtsResults,proto3,oneof"`
+}
+
+func (*State_CheckCourts_) isState_V() {}
+
+func (*State_CheckCourtsResults_) isState_V() {}
+
+type StorageMetadata_FileReceipt struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MessageId     int64                  `protobuf:"varint,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StorageMetadata_FileReceipt) Reset() {
+	*x = StorageMetadata_FileReceipt{}
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StorageMetadata_FileReceipt) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StorageMetadata_FileReceipt) ProtoMessage() {}
+
+func (x *StorageMetadata_FileReceipt) ProtoReflect() protoreflect.Message {
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StorageMetadata_FileReceipt.ProtoReflect.Descriptor instead.
+func (*StorageMetadata_FileReceipt) Descriptor() ([]byte, []int) {
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0, 0}
+}
+
+func (x *StorageMetadata_FileReceipt) GetMessageId() int64 {
+	if x != nil {
+		return x.MessageId
+	}
+	return 0
 }
 
 type Callbacks_Data struct {
@@ -68,6 +238,7 @@ type Callbacks_Data struct {
 	//	*Callbacks_Data_SelectHour
 	//	*Callbacks_Data_Finalize
 	//	*Callbacks_Data_Reset_
+	//	*Callbacks_Data_UpdatePager
 	V             isCallbacks_Data_V `protobuf_oneof:"v"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -75,7 +246,7 @@ type Callbacks_Data struct {
 
 func (x *Callbacks_Data) Reset() {
 	*x = Callbacks_Data{}
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[1]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -87,7 +258,7 @@ func (x *Callbacks_Data) String() string {
 func (*Callbacks_Data) ProtoMessage() {}
 
 func (x *Callbacks_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[1]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -100,7 +271,7 @@ func (x *Callbacks_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Callbacks_Data.ProtoReflect.Descriptor instead.
 func (*Callbacks_Data) Descriptor() ([]byte, []int) {
-	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0, 0}
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{1, 0}
 }
 
 func (x *Callbacks_Data) GetV() isCallbacks_Data_V {
@@ -155,7 +326,7 @@ func (x *Callbacks_Data) GetSelectHour() *Callbacks_SelectHour {
 	return nil
 }
 
-func (x *Callbacks_Data) GetFinalize() *Callbacks_State {
+func (x *Callbacks_Data) GetFinalize() *Callbacks_Empty {
 	if x != nil {
 		if x, ok := x.V.(*Callbacks_Data_Finalize); ok {
 			return x.Finalize
@@ -164,10 +335,19 @@ func (x *Callbacks_Data) GetFinalize() *Callbacks_State {
 	return nil
 }
 
-func (x *Callbacks_Data) GetReset_() *Callbacks_State {
+func (x *Callbacks_Data) GetReset_() *Callbacks_Empty {
 	if x != nil {
 		if x, ok := x.V.(*Callbacks_Data_Reset_); ok {
 			return x.Reset_
+		}
+	}
+	return nil
+}
+
+func (x *Callbacks_Data) GetUpdatePager() *Callbacks_Pager {
+	if x != nil {
+		if x, ok := x.V.(*Callbacks_Data_UpdatePager); ok {
+			return x.UpdatePager
 		}
 	}
 	return nil
@@ -198,11 +378,15 @@ type Callbacks_Data_SelectHour struct {
 }
 
 type Callbacks_Data_Finalize struct {
-	Finalize *Callbacks_State `protobuf:"bytes,100,opt,name=finalize,proto3,oneof"`
+	Finalize *Callbacks_Empty `protobuf:"bytes,100,opt,name=finalize,proto3,oneof"`
 }
 
 type Callbacks_Data_Reset_ struct {
-	Reset_ *Callbacks_State `protobuf:"bytes,101,opt,name=reset,proto3,oneof"`
+	Reset_ *Callbacks_Empty `protobuf:"bytes,101,opt,name=reset,proto3,oneof"`
+}
+
+type Callbacks_Data_UpdatePager struct {
+	UpdatePager *Callbacks_Pager `protobuf:"bytes,200,opt,name=update_pager,json=updatePager,proto3,oneof"`
 }
 
 func (*Callbacks_Data_ChangeDatetime) isCallbacks_Data_V() {}
@@ -219,32 +403,29 @@ func (*Callbacks_Data_Finalize) isCallbacks_Data_V() {}
 
 func (*Callbacks_Data_Reset_) isCallbacks_Data_V() {}
 
-type Callbacks_State struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Ts    int32                  `protobuf:"varint,1,opt,name=ts,proto3" json:"ts,omitempty"`
-	// Types that are valid to be assigned to V:
-	//
-	//	*Callbacks_State_CheckCourts
-	V             isCallbacks_State_V `protobuf_oneof:"v"`
+func (*Callbacks_Data_UpdatePager) isCallbacks_Data_V() {}
+
+type Callbacks_Empty struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Callbacks_State) Reset() {
-	*x = Callbacks_State{}
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[2]
+func (x *Callbacks_Empty) Reset() {
+	*x = Callbacks_Empty{}
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Callbacks_State) String() string {
+func (x *Callbacks_Empty) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Callbacks_State) ProtoMessage() {}
+func (*Callbacks_Empty) ProtoMessage() {}
 
-func (x *Callbacks_State) ProtoReflect() protoreflect.Message {
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[2]
+func (x *Callbacks_Empty) ProtoReflect() protoreflect.Message {
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -255,43 +436,10 @@ func (x *Callbacks_State) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Callbacks_State.ProtoReflect.Descriptor instead.
-func (*Callbacks_State) Descriptor() ([]byte, []int) {
-	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0, 1}
+// Deprecated: Use Callbacks_Empty.ProtoReflect.Descriptor instead.
+func (*Callbacks_Empty) Descriptor() ([]byte, []int) {
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{1, 1}
 }
-
-func (x *Callbacks_State) GetTs() int32 {
-	if x != nil {
-		return x.Ts
-	}
-	return 0
-}
-
-func (x *Callbacks_State) GetV() isCallbacks_State_V {
-	if x != nil {
-		return x.V
-	}
-	return nil
-}
-
-func (x *Callbacks_State) GetCheckCourts() *Callbacks_CheckCourts {
-	if x != nil {
-		if x, ok := x.V.(*Callbacks_State_CheckCourts); ok {
-			return x.CheckCourts
-		}
-	}
-	return nil
-}
-
-type isCallbacks_State_V interface {
-	isCallbacks_State_V()
-}
-
-type Callbacks_State_CheckCourts struct {
-	CheckCourts *Callbacks_CheckCourts `protobuf:"bytes,100,opt,name=check_courts,json=checkCourts,proto3,oneof"`
-}
-
-func (*Callbacks_State_CheckCourts) isCallbacks_State_V() {}
 
 type Callbacks_SelectHourPrecision struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -302,7 +450,7 @@ type Callbacks_SelectHourPrecision struct {
 
 func (x *Callbacks_SelectHourPrecision) Reset() {
 	*x = Callbacks_SelectHourPrecision{}
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[3]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -314,7 +462,7 @@ func (x *Callbacks_SelectHourPrecision) String() string {
 func (*Callbacks_SelectHourPrecision) ProtoMessage() {}
 
 func (x *Callbacks_SelectHourPrecision) ProtoReflect() protoreflect.Message {
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[3]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -327,7 +475,7 @@ func (x *Callbacks_SelectHourPrecision) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Callbacks_SelectHourPrecision.ProtoReflect.Descriptor instead.
 func (*Callbacks_SelectHourPrecision) Descriptor() ([]byte, []int) {
-	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0, 2}
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{1, 2}
 }
 
 func (x *Callbacks_SelectHourPrecision) GetHalfes() bool {
@@ -346,7 +494,7 @@ type Callbacks_ChangeDateTime struct {
 
 func (x *Callbacks_ChangeDateTime) Reset() {
 	*x = Callbacks_ChangeDateTime{}
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[4]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -358,7 +506,7 @@ func (x *Callbacks_ChangeDateTime) String() string {
 func (*Callbacks_ChangeDateTime) ProtoMessage() {}
 
 func (x *Callbacks_ChangeDateTime) ProtoReflect() protoreflect.Message {
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[4]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -371,7 +519,7 @@ func (x *Callbacks_ChangeDateTime) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Callbacks_ChangeDateTime.ProtoReflect.Descriptor instead.
 func (*Callbacks_ChangeDateTime) Descriptor() ([]byte, []int) {
-	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0, 3}
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{1, 3}
 }
 
 func (x *Callbacks_ChangeDateTime) GetDatetime() int32 {
@@ -390,7 +538,7 @@ type Callbacks_SelectDateTime struct {
 
 func (x *Callbacks_SelectDateTime) Reset() {
 	*x = Callbacks_SelectDateTime{}
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[5]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -402,7 +550,7 @@ func (x *Callbacks_SelectDateTime) String() string {
 func (*Callbacks_SelectDateTime) ProtoMessage() {}
 
 func (x *Callbacks_SelectDateTime) ProtoReflect() protoreflect.Message {
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[5]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -415,7 +563,7 @@ func (x *Callbacks_SelectDateTime) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Callbacks_SelectDateTime.ProtoReflect.Descriptor instead.
 func (*Callbacks_SelectDateTime) Descriptor() ([]byte, []int) {
-	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0, 4}
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{1, 4}
 }
 
 func (x *Callbacks_SelectDateTime) GetDatetime() int32 {
@@ -434,7 +582,7 @@ type Callbacks_SelectHour struct {
 
 func (x *Callbacks_SelectHour) Reset() {
 	*x = Callbacks_SelectHour{}
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[6]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -446,7 +594,7 @@ func (x *Callbacks_SelectHour) String() string {
 func (*Callbacks_SelectHour) ProtoMessage() {}
 
 func (x *Callbacks_SelectHour) ProtoReflect() protoreflect.Message {
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[6]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -459,7 +607,7 @@ func (x *Callbacks_SelectHour) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Callbacks_SelectHour.ProtoReflect.Descriptor instead.
 func (*Callbacks_SelectHour) Descriptor() ([]byte, []int) {
-	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0, 5}
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{1, 5}
 }
 
 func (x *Callbacks_SelectHour) GetHour() int32 {
@@ -478,7 +626,7 @@ type Callbacks_SelectDuration struct {
 
 func (x *Callbacks_SelectDuration) Reset() {
 	*x = Callbacks_SelectDuration{}
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[7]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -490,7 +638,7 @@ func (x *Callbacks_SelectDuration) String() string {
 func (*Callbacks_SelectDuration) ProtoMessage() {}
 
 func (x *Callbacks_SelectDuration) ProtoReflect() protoreflect.Message {
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[7]
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -503,7 +651,7 @@ func (x *Callbacks_SelectDuration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Callbacks_SelectDuration.ProtoReflect.Descriptor instead.
 func (*Callbacks_SelectDuration) Descriptor() ([]byte, []int) {
-	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0, 6}
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{1, 6}
 }
 
 func (x *Callbacks_SelectDuration) GetHourHalfs() int32 {
@@ -513,30 +661,29 @@ func (x *Callbacks_SelectDuration) GetHourHalfs() int32 {
 	return 0
 }
 
-type Callbacks_CheckCourts struct {
-	state         protoimpl.MessageState         `protogen:"open.v1"`
-	Datetime      *Callbacks_SelectDateTime      `protobuf:"bytes,1,opt,name=datetime,proto3" json:"datetime,omitempty"`
-	Duration      *Callbacks_SelectDuration      `protobuf:"bytes,2,opt,name=duration,proto3" json:"duration,omitempty"`
-	HourPrecision *Callbacks_SelectHourPrecision `protobuf:"bytes,3,opt,name=hour_precision,json=hourPrecision,proto3" json:"hour_precision,omitempty"`
+type Callbacks_Pager struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Callbacks_CheckCourts) Reset() {
-	*x = Callbacks_CheckCourts{}
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[8]
+func (x *Callbacks_Pager) Reset() {
+	*x = Callbacks_Pager{}
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Callbacks_CheckCourts) String() string {
+func (x *Callbacks_Pager) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Callbacks_CheckCourts) ProtoMessage() {}
+func (*Callbacks_Pager) ProtoMessage() {}
 
-func (x *Callbacks_CheckCourts) ProtoReflect() protoreflect.Message {
-	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[8]
+func (x *Callbacks_Pager) ProtoReflect() protoreflect.Message {
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -547,38 +694,319 @@ func (x *Callbacks_CheckCourts) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Callbacks_CheckCourts.ProtoReflect.Descriptor instead.
-func (*Callbacks_CheckCourts) Descriptor() ([]byte, []int) {
-	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{0, 7}
+// Deprecated: Use Callbacks_Pager.ProtoReflect.Descriptor instead.
+func (*Callbacks_Pager) Descriptor() ([]byte, []int) {
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{1, 7}
 }
 
-func (x *Callbacks_CheckCourts) GetDatetime() *Callbacks_SelectDateTime {
+func (x *Callbacks_Pager) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *Callbacks_Pager) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+type State_CheckCourts struct {
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	Datetime      *Callbacks_SelectDateTime      `protobuf:"bytes,1,opt,name=datetime,proto3" json:"datetime,omitempty"`
+	Duration      *Callbacks_SelectDuration      `protobuf:"bytes,2,opt,name=duration,proto3" json:"duration,omitempty"`
+	HourPrecision *Callbacks_SelectHourPrecision `protobuf:"bytes,3,opt,name=hour_precision,json=hourPrecision,proto3" json:"hour_precision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *State_CheckCourts) Reset() {
+	*x = State_CheckCourts{}
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *State_CheckCourts) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*State_CheckCourts) ProtoMessage() {}
+
+func (x *State_CheckCourts) ProtoReflect() protoreflect.Message {
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use State_CheckCourts.ProtoReflect.Descriptor instead.
+func (*State_CheckCourts) Descriptor() ([]byte, []int) {
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{2, 0}
+}
+
+func (x *State_CheckCourts) GetDatetime() *Callbacks_SelectDateTime {
 	if x != nil {
 		return x.Datetime
 	}
 	return nil
 }
 
-func (x *Callbacks_CheckCourts) GetDuration() *Callbacks_SelectDuration {
+func (x *State_CheckCourts) GetDuration() *Callbacks_SelectDuration {
 	if x != nil {
 		return x.Duration
 	}
 	return nil
 }
 
-func (x *Callbacks_CheckCourts) GetHourPrecision() *Callbacks_SelectHourPrecision {
+func (x *State_CheckCourts) GetHourPrecision() *Callbacks_SelectHourPrecision {
 	if x != nil {
 		return x.HourPrecision
 	}
 	return nil
 }
 
+type State_CheckCourtsResults struct {
+	state         protoimpl.MessageState       `protogen:"open.v1"`
+	Params        *State_CheckCourts           `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	Pager         *Callbacks_Pager             `protobuf:"bytes,2,opt,name=pager,proto3" json:"pager,omitempty"`
+	FileReceipt   *StorageMetadata_FileReceipt `protobuf:"bytes,3,opt,name=file_receipt,json=fileReceipt,proto3" json:"file_receipt,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *State_CheckCourtsResults) Reset() {
+	*x = State_CheckCourtsResults{}
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *State_CheckCourtsResults) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*State_CheckCourtsResults) ProtoMessage() {}
+
+func (x *State_CheckCourtsResults) ProtoReflect() protoreflect.Message {
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use State_CheckCourtsResults.ProtoReflect.Descriptor instead.
+func (*State_CheckCourtsResults) Descriptor() ([]byte, []int) {
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{2, 1}
+}
+
+func (x *State_CheckCourtsResults) GetParams() *State_CheckCourts {
+	if x != nil {
+		return x.Params
+	}
+	return nil
+}
+
+func (x *State_CheckCourtsResults) GetPager() *Callbacks_Pager {
+	if x != nil {
+		return x.Pager
+	}
+	return nil
+}
+
+func (x *State_CheckCourtsResults) GetFileReceipt() *StorageMetadata_FileReceipt {
+	if x != nil {
+		return x.FileReceipt
+	}
+	return nil
+}
+
+type State_AvailableCourts struct {
+	state         protoimpl.MessageState        `protogen:"open.v1"`
+	Clubs         []*State_AvailableCourts_Club `protobuf:"bytes,1,rep,name=clubs,proto3" json:"clubs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *State_AvailableCourts) Reset() {
+	*x = State_AvailableCourts{}
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *State_AvailableCourts) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*State_AvailableCourts) ProtoMessage() {}
+
+func (x *State_AvailableCourts) ProtoReflect() protoreflect.Message {
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use State_AvailableCourts.ProtoReflect.Descriptor instead.
+func (*State_AvailableCourts) Descriptor() ([]byte, []int) {
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{2, 2}
+}
+
+func (x *State_AvailableCourts) GetClubs() []*State_AvailableCourts_Club {
+	if x != nil {
+		return x.Clubs
+	}
+	return nil
+}
+
+type State_AvailableCourts_Club struct {
+	state         protoimpl.MessageState         `protogen:"open.v1"`
+	Name          string                         `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Address       string                         `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	Url           string                         `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
+	Prices        []*State_AvailableCourts_Price `protobuf:"bytes,4,rep,name=prices,proto3" json:"prices,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *State_AvailableCourts_Club) Reset() {
+	*x = State_AvailableCourts_Club{}
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *State_AvailableCourts_Club) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*State_AvailableCourts_Club) ProtoMessage() {}
+
+func (x *State_AvailableCourts_Club) ProtoReflect() protoreflect.Message {
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use State_AvailableCourts_Club.ProtoReflect.Descriptor instead.
+func (*State_AvailableCourts_Club) Descriptor() ([]byte, []int) {
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{2, 2, 0}
+}
+
+func (x *State_AvailableCourts_Club) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *State_AvailableCourts_Club) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *State_AvailableCourts_Club) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *State_AvailableCourts_Club) GetPrices() []*State_AvailableCourts_Price {
+	if x != nil {
+		return x.Prices
+	}
+	return nil
+}
+
+type State_AvailableCourts_Price struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Amount        string                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	CourtType     string                 `protobuf:"bytes,2,opt,name=court_type,json=courtType,proto3" json:"court_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *State_AvailableCourts_Price) Reset() {
+	*x = State_AvailableCourts_Price{}
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *State_AvailableCourts_Price) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*State_AvailableCourts_Price) ProtoMessage() {}
+
+func (x *State_AvailableCourts_Price) ProtoReflect() protoreflect.Message {
+	mi := &file_tgbot_v1_tgbot_shared_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use State_AvailableCourts_Price.ProtoReflect.Descriptor instead.
+func (*State_AvailableCourts_Price) Descriptor() ([]byte, []int) {
+	return file_tgbot_v1_tgbot_shared_proto_rawDescGZIP(), []int{2, 2, 1}
+}
+
+func (x *State_AvailableCourts_Price) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *State_AvailableCourts_Price) GetCourtType() string {
+	if x != nil {
+		return x.CourtType
+	}
+	return ""
+}
+
 var File_tgbot_v1_tgbot_shared_proto protoreflect.FileDescriptor
 
 const file_tgbot_v1_tgbot_shared_proto_rawDesc = "" +
 	"\n" +
-	"\x1btgbot/v1/tgbot_shared.proto\x12\btgbot.v1\"\xb7\b\n" +
-	"\tCallbacks\x1a\x87\x04\n" +
+	"\x1btgbot/v1/tgbot_shared.proto\x12\btgbot.v1\"?\n" +
+	"\x0fStorageMetadata\x1a,\n" +
+	"\vFileReceipt\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x01 \x01(\x03R\tmessageId\"\xf4\x06\n" +
+	"\tCallbacks\x1a\xc8\x04\n" +
 	"\x04Data\x12M\n" +
 	"\x0fchange_datetime\x18\x01 \x01(\v2\".tgbot.v1.Callbacks.ChangeDateTimeH\x00R\x0echangeDatetime\x12M\n" +
 	"\x0fselect_duration\x18\x02 \x01(\v2\".tgbot.v1.Callbacks.SelectDurationH\x00R\x0eselectDuration\x12N\n" +
@@ -586,13 +1014,11 @@ const file_tgbot_v1_tgbot_shared_proto_rawDesc = "" +
 	"\x15select_hour_precision\x18\x04 \x01(\v2'.tgbot.v1.Callbacks.SelectHourPrecisionH\x00R\x13selectHourPrecision\x12A\n" +
 	"\vselect_hour\x18\x05 \x01(\v2\x1e.tgbot.v1.Callbacks.SelectHourH\x00R\n" +
 	"selectHour\x127\n" +
-	"\bfinalize\x18d \x01(\v2\x19.tgbot.v1.Callbacks.StateH\x00R\bfinalize\x121\n" +
-	"\x05reset\x18e \x01(\v2\x19.tgbot.v1.Callbacks.StateH\x00R\x05resetB\x03\n" +
-	"\x01v\x1ab\n" +
-	"\x05State\x12\x0e\n" +
-	"\x02ts\x18\x01 \x01(\x05R\x02ts\x12D\n" +
-	"\fcheck_courts\x18d \x01(\v2\x1f.tgbot.v1.Callbacks.CheckCourtsH\x00R\vcheckCourtsB\x03\n" +
-	"\x01v\x1a-\n" +
+	"\bfinalize\x18d \x01(\v2\x19.tgbot.v1.Callbacks.EmptyH\x00R\bfinalize\x121\n" +
+	"\x05reset\x18e \x01(\v2\x19.tgbot.v1.Callbacks.EmptyH\x00R\x05reset\x12?\n" +
+	"\fupdate_pager\x18\xc8\x01 \x01(\v2\x19.tgbot.v1.Callbacks.PagerH\x00R\vupdatePagerB\x03\n" +
+	"\x01v\x1a\a\n" +
+	"\x05Empty\x1a-\n" +
 	"\x13SelectHourPrecision\x12\x16\n" +
 	"\x06halfes\x18\x01 \x01(\bR\x06halfes\x1a,\n" +
 	"\x0eChangeDateTime\x12\x1a\n" +
@@ -604,11 +1030,34 @@ const file_tgbot_v1_tgbot_shared_proto_rawDesc = "" +
 	"\x04hour\x18\x01 \x01(\x05R\x04hour\x1a/\n" +
 	"\x0eSelectDuration\x12\x1d\n" +
 	"\n" +
-	"hour_halfs\x18\x01 \x01(\x05R\thourHalfs\x1a\xdd\x01\n" +
+	"hour_halfs\x18\x01 \x01(\x05R\thourHalfs\x1a5\n" +
+	"\x05Pager\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset\"\xf5\x06\n" +
+	"\x05State\x12\x0e\n" +
+	"\x02ts\x18\x01 \x01(\x05R\x02ts\x12@\n" +
+	"\fcheck_courts\x18d \x01(\v2\x1b.tgbot.v1.State.CheckCourtsH\x00R\vcheckCourts\x12V\n" +
+	"\x14check_courts_results\x18e \x01(\v2\".tgbot.v1.State.CheckCourtsResultsH\x00R\x12checkCourtsResults\x1a\xdd\x01\n" +
 	"\vCheckCourts\x12>\n" +
 	"\bdatetime\x18\x01 \x01(\v2\".tgbot.v1.Callbacks.SelectDateTimeR\bdatetime\x12>\n" +
 	"\bduration\x18\x02 \x01(\v2\".tgbot.v1.Callbacks.SelectDurationR\bduration\x12N\n" +
-	"\x0ehour_precision\x18\x03 \x01(\v2'.tgbot.v1.Callbacks.SelectHourPrecisionR\rhourPrecisionB<Z:github.com/auvn/go-klubyorg/pkg/gen/proto/tgbot/v1;tgbotv1b\x06proto3"
+	"\x0ehour_precision\x18\x03 \x01(\v2'.tgbot.v1.Callbacks.SelectHourPrecisionR\rhourPrecision\x1a\xc4\x01\n" +
+	"\x12CheckCourtsResults\x123\n" +
+	"\x06params\x18\x01 \x01(\v2\x1b.tgbot.v1.State.CheckCourtsR\x06params\x12/\n" +
+	"\x05pager\x18\x02 \x01(\v2\x19.tgbot.v1.Callbacks.PagerR\x05pager\x12H\n" +
+	"\ffile_receipt\x18\x03 \x01(\v2%.tgbot.v1.StorageMetadata.FileReceiptR\vfileReceipt\x1a\x95\x02\n" +
+	"\x0fAvailableCourts\x12:\n" +
+	"\x05clubs\x18\x01 \x03(\v2$.tgbot.v1.State.AvailableCourts.ClubR\x05clubs\x1a\x85\x01\n" +
+	"\x04Club\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\aaddress\x18\x02 \x01(\tR\aaddress\x12\x10\n" +
+	"\x03url\x18\x03 \x01(\tR\x03url\x12=\n" +
+	"\x06prices\x18\x04 \x03(\v2%.tgbot.v1.State.AvailableCourts.PriceR\x06prices\x1a>\n" +
+	"\x05Price\x12\x16\n" +
+	"\x06amount\x18\x01 \x01(\tR\x06amount\x12\x1d\n" +
+	"\n" +
+	"court_type\x18\x02 \x01(\tR\tcourtTypeB\x03\n" +
+	"\x01vB<Z:github.com/auvn/go-klubyorg/pkg/gen/proto/tgbot/v1;tgbotv1b\x06proto3"
 
 var (
 	file_tgbot_v1_tgbot_shared_proto_rawDescOnce sync.Once
@@ -622,35 +1071,50 @@ func file_tgbot_v1_tgbot_shared_proto_rawDescGZIP() []byte {
 	return file_tgbot_v1_tgbot_shared_proto_rawDescData
 }
 
-var file_tgbot_v1_tgbot_shared_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_tgbot_v1_tgbot_shared_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_tgbot_v1_tgbot_shared_proto_goTypes = []any{
-	(*Callbacks)(nil),                     // 0: tgbot.v1.Callbacks
-	(*Callbacks_Data)(nil),                // 1: tgbot.v1.Callbacks.Data
-	(*Callbacks_State)(nil),               // 2: tgbot.v1.Callbacks.State
-	(*Callbacks_SelectHourPrecision)(nil), // 3: tgbot.v1.Callbacks.SelectHourPrecision
-	(*Callbacks_ChangeDateTime)(nil),      // 4: tgbot.v1.Callbacks.ChangeDateTime
-	(*Callbacks_SelectDateTime)(nil),      // 5: tgbot.v1.Callbacks.SelectDateTime
-	(*Callbacks_SelectHour)(nil),          // 6: tgbot.v1.Callbacks.SelectHour
-	(*Callbacks_SelectDuration)(nil),      // 7: tgbot.v1.Callbacks.SelectDuration
-	(*Callbacks_CheckCourts)(nil),         // 8: tgbot.v1.Callbacks.CheckCourts
+	(*StorageMetadata)(nil),               // 0: tgbot.v1.StorageMetadata
+	(*Callbacks)(nil),                     // 1: tgbot.v1.Callbacks
+	(*State)(nil),                         // 2: tgbot.v1.State
+	(*StorageMetadata_FileReceipt)(nil),   // 3: tgbot.v1.StorageMetadata.FileReceipt
+	(*Callbacks_Data)(nil),                // 4: tgbot.v1.Callbacks.Data
+	(*Callbacks_Empty)(nil),               // 5: tgbot.v1.Callbacks.Empty
+	(*Callbacks_SelectHourPrecision)(nil), // 6: tgbot.v1.Callbacks.SelectHourPrecision
+	(*Callbacks_ChangeDateTime)(nil),      // 7: tgbot.v1.Callbacks.ChangeDateTime
+	(*Callbacks_SelectDateTime)(nil),      // 8: tgbot.v1.Callbacks.SelectDateTime
+	(*Callbacks_SelectHour)(nil),          // 9: tgbot.v1.Callbacks.SelectHour
+	(*Callbacks_SelectDuration)(nil),      // 10: tgbot.v1.Callbacks.SelectDuration
+	(*Callbacks_Pager)(nil),               // 11: tgbot.v1.Callbacks.Pager
+	(*State_CheckCourts)(nil),             // 12: tgbot.v1.State.CheckCourts
+	(*State_CheckCourtsResults)(nil),      // 13: tgbot.v1.State.CheckCourtsResults
+	(*State_AvailableCourts)(nil),         // 14: tgbot.v1.State.AvailableCourts
+	(*State_AvailableCourts_Club)(nil),    // 15: tgbot.v1.State.AvailableCourts.Club
+	(*State_AvailableCourts_Price)(nil),   // 16: tgbot.v1.State.AvailableCourts.Price
 }
 var file_tgbot_v1_tgbot_shared_proto_depIdxs = []int32{
-	4,  // 0: tgbot.v1.Callbacks.Data.change_datetime:type_name -> tgbot.v1.Callbacks.ChangeDateTime
-	7,  // 1: tgbot.v1.Callbacks.Data.select_duration:type_name -> tgbot.v1.Callbacks.SelectDuration
-	5,  // 2: tgbot.v1.Callbacks.Data.select_date_time:type_name -> tgbot.v1.Callbacks.SelectDateTime
-	3,  // 3: tgbot.v1.Callbacks.Data.select_hour_precision:type_name -> tgbot.v1.Callbacks.SelectHourPrecision
-	6,  // 4: tgbot.v1.Callbacks.Data.select_hour:type_name -> tgbot.v1.Callbacks.SelectHour
-	2,  // 5: tgbot.v1.Callbacks.Data.finalize:type_name -> tgbot.v1.Callbacks.State
-	2,  // 6: tgbot.v1.Callbacks.Data.reset:type_name -> tgbot.v1.Callbacks.State
-	8,  // 7: tgbot.v1.Callbacks.State.check_courts:type_name -> tgbot.v1.Callbacks.CheckCourts
-	5,  // 8: tgbot.v1.Callbacks.CheckCourts.datetime:type_name -> tgbot.v1.Callbacks.SelectDateTime
-	7,  // 9: tgbot.v1.Callbacks.CheckCourts.duration:type_name -> tgbot.v1.Callbacks.SelectDuration
-	3,  // 10: tgbot.v1.Callbacks.CheckCourts.hour_precision:type_name -> tgbot.v1.Callbacks.SelectHourPrecision
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	12, // 0: tgbot.v1.State.check_courts:type_name -> tgbot.v1.State.CheckCourts
+	13, // 1: tgbot.v1.State.check_courts_results:type_name -> tgbot.v1.State.CheckCourtsResults
+	7,  // 2: tgbot.v1.Callbacks.Data.change_datetime:type_name -> tgbot.v1.Callbacks.ChangeDateTime
+	10, // 3: tgbot.v1.Callbacks.Data.select_duration:type_name -> tgbot.v1.Callbacks.SelectDuration
+	8,  // 4: tgbot.v1.Callbacks.Data.select_date_time:type_name -> tgbot.v1.Callbacks.SelectDateTime
+	6,  // 5: tgbot.v1.Callbacks.Data.select_hour_precision:type_name -> tgbot.v1.Callbacks.SelectHourPrecision
+	9,  // 6: tgbot.v1.Callbacks.Data.select_hour:type_name -> tgbot.v1.Callbacks.SelectHour
+	5,  // 7: tgbot.v1.Callbacks.Data.finalize:type_name -> tgbot.v1.Callbacks.Empty
+	5,  // 8: tgbot.v1.Callbacks.Data.reset:type_name -> tgbot.v1.Callbacks.Empty
+	11, // 9: tgbot.v1.Callbacks.Data.update_pager:type_name -> tgbot.v1.Callbacks.Pager
+	8,  // 10: tgbot.v1.State.CheckCourts.datetime:type_name -> tgbot.v1.Callbacks.SelectDateTime
+	10, // 11: tgbot.v1.State.CheckCourts.duration:type_name -> tgbot.v1.Callbacks.SelectDuration
+	6,  // 12: tgbot.v1.State.CheckCourts.hour_precision:type_name -> tgbot.v1.Callbacks.SelectHourPrecision
+	12, // 13: tgbot.v1.State.CheckCourtsResults.params:type_name -> tgbot.v1.State.CheckCourts
+	11, // 14: tgbot.v1.State.CheckCourtsResults.pager:type_name -> tgbot.v1.Callbacks.Pager
+	3,  // 15: tgbot.v1.State.CheckCourtsResults.file_receipt:type_name -> tgbot.v1.StorageMetadata.FileReceipt
+	15, // 16: tgbot.v1.State.AvailableCourts.clubs:type_name -> tgbot.v1.State.AvailableCourts.Club
+	16, // 17: tgbot.v1.State.AvailableCourts.Club.prices:type_name -> tgbot.v1.State.AvailableCourts.Price
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_tgbot_v1_tgbot_shared_proto_init() }
@@ -658,7 +1122,11 @@ func file_tgbot_v1_tgbot_shared_proto_init() {
 	if File_tgbot_v1_tgbot_shared_proto != nil {
 		return
 	}
-	file_tgbot_v1_tgbot_shared_proto_msgTypes[1].OneofWrappers = []any{
+	file_tgbot_v1_tgbot_shared_proto_msgTypes[2].OneofWrappers = []any{
+		(*State_CheckCourts_)(nil),
+		(*State_CheckCourtsResults_)(nil),
+	}
+	file_tgbot_v1_tgbot_shared_proto_msgTypes[4].OneofWrappers = []any{
 		(*Callbacks_Data_ChangeDatetime)(nil),
 		(*Callbacks_Data_SelectDuration)(nil),
 		(*Callbacks_Data_SelectDateTime)(nil),
@@ -666,9 +1134,7 @@ func file_tgbot_v1_tgbot_shared_proto_init() {
 		(*Callbacks_Data_SelectHour)(nil),
 		(*Callbacks_Data_Finalize)(nil),
 		(*Callbacks_Data_Reset_)(nil),
-	}
-	file_tgbot_v1_tgbot_shared_proto_msgTypes[2].OneofWrappers = []any{
-		(*Callbacks_State_CheckCourts)(nil),
+		(*Callbacks_Data_UpdatePager)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -676,7 +1142,7 @@ func file_tgbot_v1_tgbot_shared_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tgbot_v1_tgbot_shared_proto_rawDesc), len(file_tgbot_v1_tgbot_shared_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

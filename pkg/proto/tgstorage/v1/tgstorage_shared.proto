@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package tgstorage.v1;
+
+option go_package = "github.com/auvn/go-klubyorg/pkg/gen/proto/tgstorage/v1;tgstoragev1";
+
+message Reference {
+  int64 message_id = 1;
+}
+
+message Message {
+  Reference id = 1;
+  Reference next = 2;
+  bytes content = 3;
+}
+
+message SlotMetadata {
+  int64 storage_file_message_id = 1;
+  File storage_file = 2;
+
+  message File {
+    string file_id = 1;
+    string file_unique_id = 2;
+    int64 file_size = 3;
+    string file_path = 4;
+  }
+}
+
+message UserStorage {
+  int64 slot_message_id = 1;
+}

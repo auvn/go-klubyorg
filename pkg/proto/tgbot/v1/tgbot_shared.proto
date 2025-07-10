@@ -4,6 +4,12 @@ package tgbot.v1;
 
 option go_package = "github.com/auvn/go-klubyorg/pkg/gen/proto/tgbot/v1;tgbotv1";
 
+message StorageMetadata {
+  message FileReceipt {
+    int64 message_id = 1;
+  }
+}
+
 message Callbacks {
   message Data {
     oneof v {
@@ -13,17 +19,14 @@ message Callbacks {
       SelectHourPrecision select_hour_precision = 4;
       SelectHour select_hour = 5;
 
-      State finalize = 100;
-      State reset = 101;
+      Empty finalize = 100;
+      Empty reset = 101;
+
+      Pager update_pager = 200;
     }
   }
 
-  message State {
-    int32 ts = 1;
-    oneof v {
-      CheckCourts check_courts = 100;
-    }
-  }
+  message Empty {}
 
   message SelectHourPrecision {
     bool halfes = 1;
@@ -45,9 +48,44 @@ message Callbacks {
     int32 hour_halfs = 1;
   }
 
+  message Pager {
+    int32 limit = 1;
+    int32 offset = 2;
+  }
+}
+
+message State {
+  int32 ts = 1;
+  oneof v {
+    CheckCourts check_courts = 100;
+    CheckCourtsResults check_courts_results = 101;
+  }
+
   message CheckCourts {
-    SelectDateTime datetime = 1;
-    SelectDuration duration = 2;
-    SelectHourPrecision hour_precision = 3;
+    Callbacks.SelectDateTime datetime = 1;
+    Callbacks.SelectDuration duration = 2;
+    Callbacks.SelectHourPrecision hour_precision = 3;
+  }
+
+  message CheckCourtsResults {
+    CheckCourts params = 1;
+    Callbacks.Pager pager = 2;
+    StorageMetadata.FileReceipt file_receipt = 3;
+  }
+
+  message AvailableCourts {
+    repeated Club clubs = 1;
+
+    message Club {
+      string name = 1;
+      string address = 2;
+      string url = 3;
+      repeated Price prices = 4;
+    }
+
+    message Price {
+      string amount = 1;
+      string court_type = 2;
+    }
   }
 }
