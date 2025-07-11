@@ -30,7 +30,7 @@ func main() {
 	cfg.Telegram.Updates.Polling = false
 	cfg.Telegram.Updates.Webhook = &tgbundle.BotUpdatesWebhookConfig{
 		URL:         "https://go-klubyorg.fly.dev/webhooks/tg",
-		SecretToken: "super puper secret token",
+		SecretToken: "superpupersecrettoken",
 	}
 
 	app := appx.NewApp()
