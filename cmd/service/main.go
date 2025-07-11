@@ -47,7 +47,7 @@ func main() {
 		baseStorage := tgstorage.NewStorage(cfg.Telegram.StorageChatID, botapi)
 		controller := tg.NewBotController(botapi, klubySvc, baseStorage)
 
-		webhooksMux.Handle("/tg", botapi.WebhookHandler())
+		webhooksMux.Handle("/webhooks/tg", botapi.WebhookHandler())
 
 		app.Go(func(ctx context.Context) error {
 			return tgbundle.ServeBotUpdates(
@@ -63,7 +63,7 @@ func main() {
 	app.Go(func(ctx context.Context) error {
 		var mux http.ServeMux
 
-		mux.Handle("/webhooks/", http.StripPrefix("/webhooks/", &webhooksMux))
+		mux.Handle("/webhooks/", &webhooksMux)
 
 		h := corsx.ConfigureHandler(&mux)
 
