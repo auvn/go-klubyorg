@@ -7,19 +7,18 @@ import (
 
 	"github.com/auvn/go-app/bootstrap/appx"
 	"github.com/auvn/go-app/httpx"
-	"github.com/auvn/go-klubyorg/internal/api/connect/klubyorgv1api"
 	"github.com/auvn/go-klubyorg/internal/corsx"
 	"github.com/auvn/go-klubyorg/internal/service/klubyorg"
 	"github.com/auvn/go-klubyorg/internal/service/tg"
 	"github.com/auvn/go-klubyorg/internal/service/tg/tgbundle"
 	"github.com/auvn/go-klubyorg/internal/service/tg/tgstorage"
-	"github.com/auvn/go-klubyorg/pkg/gen/proto/klubyorg/v1/klubyorgv1connect"
 )
 
 type Config struct {
 	Telegram struct {
-		BotToken      string
 		StorageChatID int64
+		BotToken      string
+		Updates       tgbundle.BotUpdatesConfig
 	}
 }
 
@@ -28,34 +27,43 @@ func main() {
 
 	cfg.Telegram.BotToken = os.Getenv("TG_BOT_TOKEN")
 	cfg.Telegram.StorageChatID = -4912380855
+	cfg.Telegram.Updates.Polling = false
+	cfg.Telegram.Updates.Webhook = &tgbundle.BotUpdatesWebhookConfig{
+		URL:         "https://go-klubyorg.fly.dev/webhooks/tg",
+		SecretToken: "super puper secret token",
+	}
 
 	app := appx.NewApp()
+
+	var webhooksMux http.ServeMux
 
 	klubySvc := klubyorg.NewService()
 
 	if tgBotToken := cfg.Telegram.BotToken; tgBotToken != "" {
-		botapi, botupdates := tgbundle.NewBot(tgBotToken)
+		botapi, botupdates := tgbundle.NewBot(
+			tgBotToken,
+			cfg.Telegram.Updates.Webhook.GetSecretToken(),
+		)
 		baseStorage := tgstorage.NewStorage(cfg.Telegram.StorageChatID, botapi)
 		controller := tg.NewBotController(botapi, klubySvc, baseStorage)
 
-		app.Go(func(ctx context.Context) error {
-			go tgbundle.NewUpdatesHandler(
-				controller, botupdates,
-			)(
-				context.WithoutCancel(ctx),
-			)
+		webhooksMux.Handle("/tg", botapi.WebhookHandler())
 
-			botapi.Start(ctx)
-			return nil
+		app.Go(func(ctx context.Context) error {
+			return tgbundle.ServeBotUpdates(
+				ctx,
+				cfg.Telegram.Updates,
+				botapi,
+				controller,
+				botupdates,
+			)
 		})
 	}
 
 	app.Go(func(ctx context.Context) error {
 		var mux http.ServeMux
 
-		courtsServiceHandler := klubyorgv1api.NewHandler(klubySvc)
-
-		mux.Handle(klubyorgv1connect.NewCourtsServiceHandler(courtsServiceHandler))
+		mux.Handle("/webhooks", http.StripPrefix("/webhooks", &webhooksMux))
 
 		h := corsx.ConfigureHandler(&mux)
 
