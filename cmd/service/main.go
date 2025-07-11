@@ -63,7 +63,7 @@ func main() {
 	app.Go(func(ctx context.Context) error {
 		var mux http.ServeMux
 
-		mux.Handle("/webhooks", http.StripPrefix("/webhooks", &webhooksMux))
+		mux.Handle("/webhooks/", http.StripPrefix("/webhooks/", &webhooksMux))
 
 		h := corsx.ConfigureHandler(&mux)
 
