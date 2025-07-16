@@ -43,7 +43,7 @@ func (b *BotController) handleCheckCourtsResultsCallbackQuery(
 			return nil, fmt.Errorf("decode stored clubs: %w", err)
 		}
 
-		params := checkCourtsParamsFromState(state.GetCheckCourts())
+		params := checkCourtsParamsFromState(state.GetCheckCourtsResults().GetParams())
 		newPager := cbData.GetUpdatePager()
 		userMessage := buildCheckCourtsResultsMessage(
 			params.Time,
