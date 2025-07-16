@@ -60,18 +60,6 @@ func resetCallback() *tgbotv1.Callbacks_Data {
 	}
 }
 
-func selectHourPrecisionCallback(
-	halfes bool,
-) *tgbotv1.Callbacks_Data {
-	return &tgbotv1.Callbacks_Data{
-		V: &tgbotv1.Callbacks_Data_SelectHourPrecision{
-			SelectHourPrecision: &tgbotv1.Callbacks_SelectHourPrecision{
-				Halfes: halfes,
-			},
-		},
-	}
-}
-
 func selectHourCallback(
 	selected int32,
 ) *tgbotv1.Callbacks_Data {
@@ -112,7 +100,6 @@ func checkCourtsState(
 	ts time.Time,
 	date time.Time,
 	durationHourHalfs int32,
-	hour int32,
 ) *tgbotv1.State {
 	return &tgbotv1.State{
 		Ts: int32(ts.Unix()),
@@ -139,5 +126,23 @@ func updatePagerCallback(
 				Offset: int32(offset),
 			},
 		},
+	}
+}
+
+type CheckCourtsParams struct {
+	Duration time.Duration
+	Time     time.Time
+}
+
+func checkCourtsParamsFromState(
+	state *tgbotv1.State_CheckCourts,
+) CheckCourtsParams {
+	hourHalfs := state.GetDuration().GetHourHalfs()
+	duration := time.Duration(hourHalfs*_30mins) * time.Minute
+	tm := timeUnix(int64(state.GetDatetime().GetDatetime()))
+
+	return CheckCourtsParams{
+		Duration: duration,
+		Time:     tm,
 	}
 }

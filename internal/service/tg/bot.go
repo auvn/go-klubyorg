@@ -37,6 +37,14 @@ func (b *BotController) HandleMessage(
 	ctx context.Context,
 	msg *models.Message,
 ) error {
+
+	msgTime := timeUnix(int64(msg.Date))
+	now := timeNow()
+
+	if msgTime.After(now) {
+		now = msgTime
+	}
+
 	var actions *Actions
 	var err error
 	switch msg.Text {
@@ -44,7 +52,7 @@ func (b *BotController) HandleMessage(
 		var newMsg *UserMessage
 		newMsg, err = b.buildCourtCheckerState(
 			ctx,
-			timeNow(),
+			now,
 			nil,
 			nil,
 		)

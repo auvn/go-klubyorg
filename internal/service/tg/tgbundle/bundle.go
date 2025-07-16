@@ -19,7 +19,6 @@ func NewBot(
 	ch := make(chan *models.Update, 0)
 	b, err := bot.New(
 		token,
-		bot.WithDebug(),
 		bot.WithNotAsyncHandlers(),
 		bot.WithWebhookSecretToken(webhookSecretToken),
 		bot.WithDefaultHandler(func(

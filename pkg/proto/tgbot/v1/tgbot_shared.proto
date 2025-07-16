@@ -12,11 +12,12 @@ message StorageMetadata {
 
 message Callbacks {
   message Data {
+    reserved 4;
+
     oneof v {
       ChangeDateTime change_datetime = 1;
       SelectDuration select_duration = 2;
       SelectDateTime select_date_time = 3;
-      SelectHourPrecision select_hour_precision = 4;
       SelectHour select_hour = 5;
 
       Empty finalize = 100;
@@ -27,10 +28,6 @@ message Callbacks {
   }
 
   message Empty {}
-
-  message SelectHourPrecision {
-    bool halfes = 1;
-  }
 
   message ChangeDateTime {
     int32 datetime = 1;
@@ -64,7 +61,6 @@ message State {
   message CheckCourts {
     Callbacks.SelectDateTime datetime = 1;
     Callbacks.SelectDuration duration = 2;
-    Callbacks.SelectHourPrecision hour_precision = 3;
   }
 
   message CheckCourtsResults {

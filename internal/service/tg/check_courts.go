@@ -43,11 +43,11 @@ func (b *BotController) handleCheckCourtsResultsCallbackQuery(
 			return nil, fmt.Errorf("decode stored clubs: %w", err)
 		}
 
-		date := timeUnix(int64(state.GetCheckCourtsResults().GetParams().GetDatetime().GetDatetime()))
+		params := checkCourtsParamsFromState(state.GetCheckCourts())
 		newPager := cbData.GetUpdatePager()
 		userMessage := buildCheckCourtsResultsMessage(
-			date,
-			time.Hour,
+			params.Time,
+			params.Duration,
 			state,
 			newPager,
 			clubs.Clubs,
@@ -76,13 +76,11 @@ func (b *BotController) handleCheckCourtsCallbackQuery(
 	cb *models.CallbackQuery,
 ) (*Actions, error) {
 	if cbData.GetFinalize() != nil {
-		hourHalfs := state.GetDuration().GetHourHalfs()
-		date := timeUnix(int64(state.GetDatetime().GetDatetime()))
-		duration := time.Duration(hourHalfs*_30mins) * time.Minute
+		params := checkCourtsParamsFromState(state)
 		result, err := b.courts.GetCourts(
 			ctx,
-			date,
-			duration,
+			params.Time,
+			params.Duration,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("courts.GetCourts: %w", err)
@@ -111,8 +109,8 @@ func (b *BotController) handleCheckCourtsCallbackQuery(
 		}
 
 		userMessage := buildCheckCourtsResultsMessage(
-			date,
-			duration,
+			params.Time,
+			params.Duration,
 			&newState,
 			newState.GetCheckCourtsResults().GetPager(),
 			clubs.Clubs,
@@ -213,7 +211,6 @@ func (b *BotController) buildCourtChecker(
 		tm,
 		selectedTime,
 		selectedDuration,
-		0,
 	)
 
 	return &CourtChecker{
